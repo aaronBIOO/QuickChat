@@ -8,7 +8,7 @@ interface ChatContainerProps {
   setSelectedUser: (user: User | null) => void
 }
 
-export default function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
+function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
 
   const scrollEnd = useRef<HTMLDivElement>(null);
 
@@ -139,3 +139,5 @@ export default function ChatContainer({ selectedUser, setSelectedUser }: ChatCon
     </div>
   );
 }
+
+export default ChatContainer;

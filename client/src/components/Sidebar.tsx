@@ -7,14 +7,14 @@ interface SidebarProps {
   setSelectedUser: (user: User | null) => void
 }
 
-export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps) {
+function Sidebar({ selectedUser, setSelectedUser }: SidebarProps) {
 
   const navigate = useNavigate();
 
   return (
     <div className={`
-      bg-[#8185B2]/10 h-full p-5 rounded-r-xl overflow-y-scroll text-white
-      ${selectedUser ? "max-md:hidden" : ""}
+      bg-[#8185B2]/10 h-full p-5 overflow-y-scroll text-white
+      ${selectedUser ? "max-md:hidden rounded-r-xl" : ""}
       `}>
       <div className="pb-5">
         <div className="flex justify-between items-center">
@@ -46,7 +46,7 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
 
         <div className="
           bg-[#282142] rounded-full flex items-center 
-          gap-2 py-3 px-4 mt-5
+          gap-2 py-3 px-4 mt-5 shadow-md 
           ">
           <img 
             src={assets.search_icon} 
@@ -58,20 +58,21 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
             placeholder="Search user" 
             className="
               flex-1 bg-transparent border-none outline-none 
-              text-white text-xs placeholder-[#c8c8c8]
+              text-white text-xs placeholder-[#c8c8c8] 
               "
           />
         </div>
       </div>
       
-      <div className="flex flex-col">
-        {userDummyData.map((user, index) => (
+      <div className="flex flex-col gap-3">
+        {
+          userDummyData.map((user, index) => (
           <div 
             onClick={() => {
               setSelectedUser(selectedUser?._id === user._id ? null : user)
             }}
             className={`
-              relative flex items-center gap-2 p-2 pl-4
+              relative flex items-center gap-3 p-2 pl-4
               rounded cursor-pointer max-sm:text-sm 
               ${selectedUser?._id === user._id && "bg-[#282142]/50"}
             `}>
@@ -89,6 +90,7 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
                 : <span className="text-neutral-400 text-xs">Offline</span>
               }
             </div>
+            
             {
               index > 2 
               && 
@@ -105,3 +107,5 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
     </div>
   )
 }
+
+export default Sidebar
