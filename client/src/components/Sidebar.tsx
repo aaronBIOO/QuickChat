@@ -58,7 +58,7 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
           />
           <input 
             type="text" 
-            placeholder="Search user..." 
+            placeholder="Search user" 
             className="
               flex-1 bg-transparent 
               border-none outline-none 
