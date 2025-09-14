@@ -13,7 +13,7 @@ interface RightSideProps {
 export default function RightSidebar({ selectedUser }: RightSideProps) {
   return selectedUser && (
     <div className={`
-      bg-[#8185B2]/10 w-full relative overflow-y-scroll text-white
+      bg-[#8185B2]/10 w-full relative overflow-y-scroll text-white rounded-l-xl
       ${selectedUser ? "max-md:hidden" : ""}
       `}>
       <div className="pt-6 flex flex-col items-center gap-2 text-xs font-light mx-auto">
