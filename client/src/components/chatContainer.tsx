@@ -97,7 +97,10 @@ export default function ChatContainer({ selectedUser, setSelectedUser }: ChatCon
           <input 
             type="text" 
             placeholder="Send a message" 
-            className="flex-1 text-sm p-3 border-none rounded-lg outline-none text-white placeholder-gray-400"
+            className="
+              flex-1 text-sm p-3 border-none rounded-lg outline-none 
+              text-white placeholder-gray-400
+            "
           />
           <input 
             type="file" 
@@ -106,10 +109,18 @@ export default function ChatContainer({ selectedUser, setSelectedUser }: ChatCon
             hidden 
           />
           <label htmlFor="image">
-            <img src={assets.gallery_icon} alt="" className="w-5 mr-2 cursor-pointer" />
+            <img 
+              src={assets.gallery_icon} 
+              alt="" 
+              className="w-5 mr-2 cursor-pointer" 
+            />
           </label>
         </div>
-        <img src={assets.send_button} alt="" className="w-7 cursor-pointer" />
+        <img 
+          src={assets.send_button} 
+          alt="" 
+          className="w-7 cursor-pointer" 
+        />
       </div>
     </div>
   ) : (

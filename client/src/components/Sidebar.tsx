@@ -30,11 +30,8 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
               className="max-h-5 cursor-pointer" 
             />
             <div className="
-              hidden group-hover:block
-              absolute top-full right-0 z-20 w-32 p-5 
-              border border-gray-600 rounded-md
-              bg-[#282142]
-              text-gray-100
+              hidden group-hover:block absolute top-full right-0 z-20 w-32 p-5
+              border border-gray-600 rounded-md bg-[#282142] text-gray-100
               ">
               <p onClick={() => navigate('/profile')} className="cursor-pointer text-sm">
                 Edit Profile
@@ -60,10 +57,8 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
             type="text" 
             placeholder="Search user" 
             className="
-              flex-1 bg-transparent 
-              border-none outline-none 
-              text-white text-xs
-              placeholder-[#c8c8c8]
+              flex-1 bg-transparent border-none outline-none 
+              text-white text-xs placeholder-[#c8c8c8]
               "
           />
         </div>
@@ -76,8 +71,8 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
               setSelectedUser(selectedUser?._id === user._id ? null : user)
             }}
             className={`
-              relative flex items-center 
-              gap-2 p-2 pl-4 rounded cursor-pointer max-sm:text-sm 
+              relative flex items-center gap-2 p-2 pl-4
+              rounded cursor-pointer max-sm:text-sm 
               ${selectedUser?._id === user._id && "bg-[#282142]/50"}
             `}>
             
@@ -98,9 +93,8 @@ export default function Sidebar({ selectedUser, setSelectedUser }: SidebarProps)
               index > 2 
               && 
               <p className="
-                absolute top-4 right-4 text-xs w-5 h-5 
-                flex justify-center items-center 
-                rounded-full bg-violet-500/50
+                absolute top-4 right-4 text-xs w-5 h-5 flex justify-center 
+                items-center rounded-full bg-violet-500/50
                 ">
                 {index}
               </p>
