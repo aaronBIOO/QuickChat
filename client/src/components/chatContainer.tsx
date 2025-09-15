@@ -20,9 +20,8 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
 
   return selectedUser ? (
     <div className="h-full overflow-scroll relative backdrop-blur-lg">
-      {/* ------------- header ------------- */}
+      {/* header */}
       <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500">
-        {/* user profile */}
         <img 
           src={assets.profile_martin} 
           alt="" 
@@ -45,7 +44,7 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
         />
       </div>
 
-      {/* ------------- chat area ------------- */}
+      {/* chat area */}
       <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-3">
         {
           messagesDummyData.map((msg, index) => (
@@ -91,7 +90,7 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
         <div ref={scrollEnd}></div>
       </div>
       
-      {/* ------------- text input area ------------- */}
+      {/* text input area */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3">
         <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
           <input 
@@ -119,7 +118,7 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
         <img 
           src={assets.send_button} 
           alt="" 
-          className="w-7 cursor-pointer" 
+          className="w-9 cursor-pointer mr-2" 
         />
       </div>
     </div>

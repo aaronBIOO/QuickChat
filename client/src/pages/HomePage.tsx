@@ -13,7 +13,7 @@ function HomePage() {
       <div className={`
         backdrop-blur-xl sm:border-2 sm:border-gray-600 sm:rounded-2xl
         overflow-hidden h-[100%] grid relative
-        ${selectedUser ? "md:grid-cols-[1fr_1.5fr_1fr] xl:grid-cols-[1fr_2fr_1fr]" : "md:grid-cols-2"}
+        ${selectedUser ? "md:grid-cols-[1fr_1.8fr_1fr] xl:grid-cols-[1fr_2.5fr_1fr]" : "md:grid-cols-2"}
         `}>
         <Sidebar 
           selectedUser={selectedUser} 

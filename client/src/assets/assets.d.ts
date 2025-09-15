@@ -23,7 +23,6 @@ export interface User {
   email: string;
   fullName: string;
   profilePic?: string;
-  // Add other user properties as needed
 }
 
 export interface Message {
@@ -33,7 +32,7 @@ export interface Message {
   text: string;
   seen: boolean;
   createdAt: string;
-  image?: string; // Optional image URL if the message has an image
+  image?: string; 
 }
 
 interface Assets {
