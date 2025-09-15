@@ -116,4 +116,4 @@ function Sidebar({ selectedUser, setSelectedUser }: SidebarProps) {
   )
 }
 
-export default Sidebar
+export default Sidebar;

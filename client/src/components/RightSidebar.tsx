@@ -10,7 +10,7 @@ interface RightSideProps {
   setSelectedUser: (user: User | null) => void
 }
 
-export default function RightSidebar({ selectedUser }: RightSideProps) {
+function RightSidebar({ selectedUser }: RightSideProps) {
   return selectedUser && (
     <div className={`
       bg-[#8185B2]/10 w-full relative overflow-y-scroll text-white rounded-l-xl
@@ -54,3 +54,5 @@ export default function RightSidebar({ selectedUser }: RightSideProps) {
     </div>
   )
 }
+
+export default RightSidebar;
