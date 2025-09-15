@@ -3,7 +3,7 @@ import HomePage from "@/pages/HomePage"
 import LoginPage from "@/pages/LoginPage"
 import ProfilePage from "@/pages/ProfilePage"
 
-export default function App() {
+function App() {
   return (
     <div className="
       w-full h-screen
@@ -17,3 +17,5 @@ export default function App() {
     </div>
   )
 }
+
+export default App;
