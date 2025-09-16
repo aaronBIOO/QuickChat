@@ -6,11 +6,10 @@ import { connectToDB } from "@/lib/db";
 
 dotenv.config();
 
-// Initialize app
 const app = express();
 const server = http.createServer(app);
 
-// Middleware setup
+// Middleware
 app.use(express.json({ limit: "4mb" }));
 app.use(cors());
 
@@ -33,5 +32,5 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-// Start the server
+
 startServer();
