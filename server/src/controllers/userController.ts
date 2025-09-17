@@ -1,4 +1,5 @@
-import { Request, Response } from "express";
+import { Response } from "express";
+import { Request as ExpressRequest } from "express";
 import User, { IUser } from "@/models/user";
 import bcrypt from "bcryptjs";
 import { generateToken } from "@/lib/utils";
@@ -22,7 +23,7 @@ interface SignupBody {
 
 
 // controller to signup new user
-export const signup = async (req: Request<{}, {}, SignupBody>, res: Response) => {
+export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
   
   const { email, fullName, password, bio } = req.body;
 
@@ -77,18 +78,26 @@ return res.status(400).json({ success: false, message: "Account already exists" 
 
 
 // controller to login user
-export const login = async (req: Request<{}, {}, SignupBody>, res: Response) => {
+export const login = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
   try {
     const { email, password } = req.body;
-    const userData = await User.findOne({email})
+    const userData = await User.findOne({ email });
     
-    const isPasswordCorrect = await bcrypt.compare(password, userData?.password);
+    if (!userData) {
+      return res.status(400).json({ success: false, message: "User not found" });
+    }
+    
+    if (!userData.password) {
+      return res.status(400).json({ success: false, message: "Invalid user data" });
+    }
+    
+    const isPasswordCorrect = await bcrypt.compare(password, userData.password);
 
     if (!isPasswordCorrect) {
-      return res.json({ success: false, message: "Invalid credentials" })
+      return res.status(400).json({ success: false, message: "Invalid credentials" });
     }
 
-    const token = generateToken(userData?._id.toString());
+    const token = generateToken(userData._id.toString());
 
     res.json({success: true, userData, token, message: "Login successful"})
 
@@ -101,17 +110,20 @@ export const login = async (req: Request<{}, {}, SignupBody>, res: Response) => 
 
 
 // controller to check if user is authenticated
-export const checkAuth = async (req: Request, res: Response) => {
+export const checkAuth = async (req: ExpressRequest, res: Response) => {
   res.json({ success: true, user: req.user });
 }
 
 
 // controller to update user profile 
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = async (req: ExpressRequest, res: Response) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: "User not authenticated" });
+  }
   try {
     const { fullName, bio, profilePic } = req.body;
 
-    const userId = req.user._id;
+    const userId = req.user._id as string;
     let updatedUser;
 
     if (!profilePic) {
@@ -133,7 +145,6 @@ export const updateProfile = async (req: Request, res: Response) => {
       user: updatedUser,
       message: "Profile updated successfully"
     })
-
   } catch (error: unknown) {
     console.error(error);
     res.json({
