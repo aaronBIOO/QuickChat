@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import User from "@/models/user";
 import { NextFunction } from "express";
 import { Request as ExpressRequest, Response } from "express";
+
+export { ExpressRequest };
 import { Document } from 'mongoose';
 
 // Extend the Express Request type to include the user property
