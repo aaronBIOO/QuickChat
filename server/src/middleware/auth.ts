@@ -2,7 +2,7 @@
 import jwt from "jsonwebtoken";
 import User from "@/models/user";
 import { NextFunction } from "express";
-import { Request as ExpressRequest, Response } from "express";
+import type { Request as ExpressRequest, Response } from "express";
 
 export { ExpressRequest };
 import { Document } from 'mongoose';
