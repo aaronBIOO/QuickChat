@@ -1,9 +1,9 @@
 import { Response } from "express";
 import { Request as ExpressRequest } from "express";
-import User, { IUser } from "@/models/user";
+import User from "@/models/user";
 import bcrypt from "bcryptjs";
 import { generateToken } from "@/lib/utils";
-import mongoose from "mongoose";
+import { sanitizeUser } from "@/lib/utils";
 import cloudinary from "@/lib/cloudinary"
 
 interface IUserInput {
@@ -21,6 +21,10 @@ interface SignupBody {
   bio: string;
 }
 
+interface LoginBody {
+  email: string;
+  password: string;
+}
 
 // controller to signup new user
 export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
@@ -31,9 +35,11 @@ export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Respo
     if (!email || !fullName || !password || !bio) {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
+
+    // checking for existing email
     const user = await User.findOne({email})
     if (user) {
-return res.status(400).json({ success: false, message: "Account already exists" });
+      return res.status(400).json({ success: false, message: "Account already exists" });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -78,52 +84,83 @@ return res.status(400).json({ success: false, message: "Account already exists" 
 
 
 // controller to login user
-export const login = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
+export const login = async (req: ExpressRequest<{}, {}, LoginBody>, res: Response) => {
   try {
     const { email, password } = req.body;
     const userData = await User.findOne({ email });
     
     if (!userData) {
-      return res.status(400).json({ success: false, message: "User not found" });
+      return res.status(400).json({ 
+        success: false, 
+        message: "User not found" 
+      });
     }
     
     if (!userData.password) {
-      return res.status(400).json({ success: false, message: "Invalid user data" });
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid password" 
+      });
     }
     
     const isPasswordCorrect = await bcrypt.compare(password, userData.password);
 
     if (!isPasswordCorrect) {
-      return res.status(400).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid credentials" 
+      });
     }
 
     const token = generateToken(userData._id.toString());
+    const safeUser = sanitizeUser(userData);
 
-    res.json({success: true, userData, token, message: "Login successful"})
+    // Set JWT in httpOnly cookie
+    res.cookie("token", token, {
+      httpOnly: true,     
+      secure: process.env.NODE_ENV === "production", 
+      sameSite: "strict", 
+      maxAge: 7 * 24 * 60 * 60 * 1000, 
+    });
+
+    res.json({
+      success: true, 
+      user: safeUser, 
+      message: "Login successful" 
+    });
 
   } catch (error: unknown) {
     console.error(error);
-    res.json({success: false, message: error instanceof Error ? error.message : 'Failed to login'})
+    return res.status(500).json({
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to login'
+    });
   }
-
 }
 
 
 // controller to check if user is authenticated
 export const checkAuth = async (req: ExpressRequest, res: Response) => {
-  res.json({ success: true, user: req.user });
+  res.json({
+    success: true, 
+    user: sanitizeUser(req.user) 
+  });
 }
 
 
 // controller to update user profile 
 export const updateProfile = async (req: ExpressRequest, res: Response) => {
   if (!req.user) {
-    return res.status(401).json({ success: false, message: "User not authenticated" });
+    return res.status(401).json({ 
+      success: false, 
+      message: "User not authenticated" 
+    });
   }
+
   try {
     const { fullName, bio, profilePic } = req.body;
-
     const userId = req.user._id as string;
+    
     let updatedUser;
 
     if (!profilePic) {
@@ -132,19 +169,29 @@ export const updateProfile = async (req: ExpressRequest, res: Response) => {
         bio
       }, {new: true});
     } else {
-      const upload = await cloudinary.uploader.upload(profilePic);
+      try {
+        const upload = await cloudinary.uploader.upload(profilePic);
 
-      updatedUser = await User.findByIdAndUpdate(userId, {
+        updatedUser = await User.findByIdAndUpdate(userId, {
         profilePic: upload.secure_url, 
         fullName,
         bio
-      }, {new: true});
+        }, {new: true});
+      } catch (error) {
+        console.error("Cloudinary upload failed:", error);
+        return res.status(500).json({ 
+          success: false, 
+          message: "Failed to upload profile picture" 
+        });
+      }
     }
+
     res.json({
       success: true,
       user: updatedUser,
       message: "Profile updated successfully"
-    })
+    });
+
   } catch (error: unknown) {
     console.error(error);
     res.json({

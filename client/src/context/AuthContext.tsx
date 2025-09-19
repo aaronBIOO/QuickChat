@@ -4,6 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { Socket, io } from "socket.io-client";
 
+
 interface AuthUser {
   _id: string;
   email: string;
@@ -24,6 +25,7 @@ interface AuthContextType {
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string;
 axios.defaults.baseURL = backendUrl;
+axios.defaults.withCredentials = true;
 
 const AuthContext = createContext<AuthContextType | null>(null);
 export { AuthContext };
@@ -45,6 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         connectSocket(data.user)
       }
     } catch (error: unknown) {
+      setAuthUser(null);
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);
       console.error(error);
@@ -57,11 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await axios.post(`/api/auth/${state}`, credentials);
       if (data.success) {
-        setAuthUser(data.userData);
-        connectSocket(data.userData);
-        axios.defaults.headers.common["token"] = data.token;
-        setToken(data.token);
-        localStorage.setItem("token", data.token);
+        setAuthUser(data.user);
+        connectSocket(data.user);
         toast.success(data.message);
       } else {
         toast.error(data.message);
@@ -77,12 +77,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // logout function to handle user logout and socket disconnection
   const logout = async () => {
     try {
-      localStorage.removeItem("token");
       setToken(null);
       setAuthUser(null);
       setSocket(null);
       setOnlineUsers([]);
-      axios.defaults.headers.common["token"] = null;
       toast.success("Logged out successfully");
       socket?.disconnect();
     } catch (error: unknown) {

@@ -5,7 +5,9 @@ import http from "http";
 import { connectToDB } from "@/lib/db";
 import userRouter from "@/routes/userRoutes";
 import messageRouter from "@/routes/messageRoute";
+import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
+
 
 dotenv.config();
 
@@ -61,6 +63,7 @@ io.on("connection", (socket) => {
 // middleware
 app.use(express.json({ limit: "4mb" }));
 app.use(cors());
+app.use(cookieParser());
 
 
 // routes setup
