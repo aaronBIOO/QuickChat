@@ -5,6 +5,7 @@ import { ExpressRequest } from "@/middleware/auth";
 import cloudinary from "@/lib/cloudinary";
 import { Server } from "socket.io";
 
+
 declare global {
   var io: Server;
   var userSocketMap: { [userId: string]: string };
@@ -14,9 +15,10 @@ declare global {
 // Extend ExpressRequest to include the user property
 type AuthenticatedRequest = ExpressRequest & {
   user: {
-    _id: string | any; // Using any as a fallback to avoid type conflicts
+    _id: string | any; 
   };
 };
+
 
 // Get all users except the logged in user
 export const getUsersForSidebar = async (req: AuthenticatedRequest, res: Response) => {
@@ -44,6 +46,7 @@ export const getUsersForSidebar = async (req: AuthenticatedRequest, res: Respons
   }
 }
 
+
 // Get all messages for selected user
 export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -66,6 +69,7 @@ export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
   }
 }
 
+
 // api to mark message as seen using message id
 export const markMessageAsSeen = async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -80,6 +84,7 @@ export const markMessageAsSeen = async (req: AuthenticatedRequest, res: Response
     });
   }
 }
+
 
 // send message to selected user
 export const sendMessage = async (req: AuthenticatedRequest, res: Response) => {
