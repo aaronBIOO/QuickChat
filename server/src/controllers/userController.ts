@@ -6,6 +6,7 @@ import { generateToken } from "@/lib/utils";
 import { sanitizeUser } from "@/lib/utils";
 import cloudinary from "@/lib/cloudinary"
 
+
 interface IUserInput {
   email: string;
   fullName: string;
@@ -25,6 +26,7 @@ interface LoginBody {
   email: string;
   password: string;
 }
+
 
 // controller to signup new user
 export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
@@ -57,6 +59,13 @@ export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Respo
 
     const token = generateToken(newUser._id.toString());
 
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     const userResponse = {
       _id: newUser._id.toString(),
       email: newUser.email,
@@ -70,7 +79,7 @@ export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Respo
       user: userResponse,
       message: "Account created successfully" 
     });
-
+    
   } catch (error: unknown) {
     console.error(error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
