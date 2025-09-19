@@ -68,7 +68,6 @@ export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Respo
     return res.status(201).json({ 
       success: true, 
       user: userResponse,
-      token, 
       message: "Account created successfully" 
     });
 

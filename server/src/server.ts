@@ -70,8 +70,8 @@ app.use(cookieParser());
 app.use("/api/status", (req: Request, res: Response): void => {
   res.send("Server is live");
 });
-app.use("api/auth", userRouter);
-app.use("api/messages", messageRouter);
+app.use("/api/auth", userRouter);
+app.use("/api/messages", messageRouter);
 
 
 
