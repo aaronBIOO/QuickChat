@@ -1,5 +1,6 @@
 import assets from "@/assets/assets"
-import { useState } from "react"
+import { AuthContext } from "@/context/AuthContext"
+import { useContext, useState } from "react"
 
 
 function LoginPage() {
@@ -11,6 +12,12 @@ function LoginPage() {
   const [bio, setBio] = useState("")
   const [isDataSubmitted, setIsDataSubmitted] = useState(false)
 
+  const authContext = useContext(AuthContext);
+  if (!authContext) {
+    throw new Error('AuthContext is not available');
+  }
+  const { login } = authContext;
+
   const onSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
@@ -18,6 +25,9 @@ function LoginPage() {
       setIsDataSubmitted(true)
       return;
     }
+
+    const authType = currentState === "Sign up" ? 'signup' : 'login';
+    login(authType, { email, password })
   }
 
   return (
@@ -50,8 +60,7 @@ function LoginPage() {
             )}
           </h2>
 
-          {
-            currentState === "Sign up" && !isDataSubmitted && (
+          {currentState === "Sign up" && !isDataSubmitted && (
             <input 
               type="text" 
               placeholder="Full name" 
@@ -63,11 +72,9 @@ function LoginPage() {
                 focus:ring-2 focus:ring-indigo-500
               " 
             />
-            )
-          }  
+          )}
 
-          {
-            !isDataSubmitted && (
+          {!isDataSubmitted && (
               <>
                 <input 
                   type="email" 
@@ -95,8 +102,7 @@ function LoginPage() {
             )
           }
 
-          {
-            currentState === "Sign up" && isDataSubmitted && (
+          {currentState === "Sign up" && isDataSubmitted && (
               <textarea 
                 rows={4}
                 placeholder="provide short a bio..." 
@@ -124,8 +130,7 @@ function LoginPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            {
-              currentState === "Sign up" ? (
+            {currentState === "Sign up" ? (
                 <p className="text-sm text-gray-600">
                   <span>Already have an account? {' '}</span>
                   <span 
@@ -143,7 +148,7 @@ function LoginPage() {
                     Sign up here
                   </span>
                 </p>
-              )
+              ) 
             }
           </div>
         </form>
