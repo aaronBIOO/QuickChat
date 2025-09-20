@@ -39,7 +39,8 @@ export const getUsersForSidebar = async (req: AuthenticatedRequest, res: Respons
       }
     });
     await Promise.all(promises);
-    res.json({success: true, users: filteredUsers, unseenMessages})
+    res.json({success: true, users: filteredUsers, unseenMessages});
+    
   } catch (error: unknown) {
     console.error(error);
     res.json({success: false, message: error instanceof Error ? error.message : 'Failed to get users'})
@@ -59,7 +60,8 @@ export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
       ]
     });
     await Message.updateMany({senderId: selectedUserId, receiverId: myId}, {seen: true});
-    res.json({success: true, messages})
+    res.json({success: true, messages});
+
   } catch (error: unknown) {
     console.error(error);
     res.json({
@@ -76,6 +78,7 @@ export const markMessageAsSeen = async (req: AuthenticatedRequest, res: Response
     const { id } = req.params;
     await Message.findByIdAndUpdate(id, {seen: true});
     res.json({success: true, message: "Message marked as seen"});
+
   } catch (error: unknown) {
     console.error(error);
     res.json({
@@ -123,6 +126,7 @@ export const sendMessage = async (req: AuthenticatedRequest, res: Response) => {
       message: "Message sent successfully", 
       newMessage 
     });
+
   } catch (error: unknown) {
     console.error(error);
     res.json({
