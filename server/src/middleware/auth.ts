@@ -26,7 +26,10 @@ export const protectRoute = async (req: ExpressRequest, res: Response, next: Nex
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
-      return res.status(401).json({ success: false, message: "User not found" });
+      return res.status(401).json({ 
+        success: false, 
+        message: "User not found" 
+      });
     }
 
     req.user = user;

@@ -40,10 +40,13 @@ export const getUsersForSidebar = async (req: AuthenticatedRequest, res: Respons
     });
     await Promise.all(promises);
     res.json({success: true, users: filteredUsers, unseenMessages});
-    
+
   } catch (error: unknown) {
     console.error(error);
-    res.json({success: false, message: error instanceof Error ? error.message : 'Failed to get users'})
+    res.json({
+      success: false, 
+      message: error instanceof Error ? error.message : 'Failed to get users'
+    })
   }
 }
 
@@ -60,7 +63,10 @@ export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
       ]
     });
     await Message.updateMany({senderId: selectedUserId, receiverId: myId}, {seen: true});
-    res.json({success: true, messages});
+    res.json({
+      success: true, 
+      messages
+    });
 
   } catch (error: unknown) {
     console.error(error);
