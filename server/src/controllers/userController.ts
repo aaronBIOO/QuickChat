@@ -131,7 +131,7 @@ export const login = async (req: ExpressRequest<{}, {}, LoginBody>, res: Respons
       maxAge: 7 * 24 * 60 * 60 * 1000, 
     });
 
-    res.json({
+    res.status(200).json({
       success: true, 
       user: safeUser, 
       message: "Login successful" 
