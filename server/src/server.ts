@@ -14,7 +14,6 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-// socket.io setup
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -22,7 +21,6 @@ const io = new Server(server, {
 });
 
 
-// store online users
 export const userSocketMap: { [userId: string]: string } = {};
 
 declare global {
@@ -30,10 +28,10 @@ declare global {
   var userSocketMap: { [userId: string]: string };
 }
 
-// Export the io instance and userSocketMap
+
 export { io };
 
-// Assign to global for backward compatibility
+
 global.io = io;
 global.userSocketMap = userSocketMap;
 
@@ -62,11 +60,11 @@ io.on("connection", (socket) => {
 
 // middleware
 app.use(express.json({ limit: "4mb" }));
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser());
 
 
-// routes setup
+
 app.use("/api/status", (req: Request, res: Response): void => {
   res.send("Server is live");
 });

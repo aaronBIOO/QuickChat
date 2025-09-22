@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -21,6 +21,7 @@ interface AuthContextType {
   login: (state: 'login' | 'signup', credentials: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (body: { fullName?: string; bio?: string; profilePic?: string }) => Promise<void>;
+  checkAuth: () => Promise<void>;
 }
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL as string;
@@ -32,7 +33,6 @@ export { AuthContext };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
-  const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -77,12 +77,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // logout function to handle user logout and socket disconnection
   const logout = async () => {
     try {
-      setToken(null);
+      await axios.post('/api/auth/logout');
       setAuthUser(null);
       setSocket(null);
       setOnlineUsers([]);
-      toast.success("Logged out successfully");
       socket?.disconnect();
+      toast.success("Logged out successfully");
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);
@@ -124,12 +124,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
   }
 
-  useEffect(() => {
-    if (token) {
-      axios.defaults.headers.common["token"] = token;
-    }
-    checkAuth();
-  }, [token]);
 
   const value: AuthContextType = {
     axios,
@@ -138,7 +132,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     socket,
     login,
     logout,
-    updateProfile
+    updateProfile,
+    checkAuth
   }
 
   return (
@@ -147,5 +142,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
-

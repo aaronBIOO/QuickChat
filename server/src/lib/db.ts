@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// connect to MongoDB
 export const connectToDB = async () => {
   try {
     mongoose.connection.on("connected", () => {
@@ -11,4 +12,3 @@ export const connectToDB = async () => {
       console.error("Failed to connect to MongoDB:", error);
   }
 };
-

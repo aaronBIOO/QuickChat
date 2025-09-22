@@ -5,7 +5,7 @@ export const generateToken = (userId: string) => {
   return token;
 }
 
-// helper to remove sensitive fields before sending a user object to the client
+// helper to remove sensitive data before sending a user object to the client
 export const sanitizeUser = (user: any) => ({
   _id: user._id?.toString(),
   email: user.email,
