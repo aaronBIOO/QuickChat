@@ -16,6 +16,7 @@ function LoginPage() {
   if (!authContext) {
     throw new Error('AuthContext is not available');
   }
+  
   const { login } = authContext;
 
   const onSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {
@@ -27,7 +28,12 @@ function LoginPage() {
     }
 
     const authType = currentState === "Sign up" ? 'signup' : 'login';
-    login(authType, { email, password })
+
+    const credentials = authType === "signup"
+      ? { email, password, fullName, bio }
+      : { email, password }
+    
+    login(authType, credentials);
   }
 
   return (
