@@ -28,9 +28,7 @@ declare global {
   var userSocketMap: { [userId: string]: string };
 }
 
-
 export { io };
-
 
 global.io = io;
 global.userSocketMap = userSocketMap;
@@ -73,7 +71,6 @@ app.use("/api/messages", messageRouter);
 app.get("/", (req: Request, res: Response): void => {
   res.send("This is a simple response from our server!");
 });
-
 
 
 // database connection
