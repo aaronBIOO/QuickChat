@@ -64,12 +64,15 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser());
 
 
-
+// routes
 app.use("/api/status", (req: Request, res: Response): void => {
   res.send("Server is live");
 });
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
+app.get("/", (req: Request, res: Response): void => {
+  res.send("This is a simple response from our server!");
+});
 
 
 
