@@ -13,13 +13,11 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: process.env.FRONTEND_URL,
   },
 });
-
 
 export const userSocketMap: { [userId: string]: string } = {};
 
@@ -63,9 +61,6 @@ app.use(cookieParser());
 
 
 // routes
-app.use("/api/status", (req: Request, res: Response): void => {
-  res.send("Server is live");
-});
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
 app.get("/", (req: Request, res: Response): void => {
@@ -73,7 +68,7 @@ app.get("/", (req: Request, res: Response): void => {
 });
 
 
-// database connection
+// database connection & starting server
 const startServer = async (): Promise<void> => {
   try {
     await connectToDB();
@@ -81,6 +76,7 @@ const startServer = async (): Promise<void> => {
     server.listen(PORT, (): void => {
       console.log(`Server running on port ${PORT}`);
     });
+
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
