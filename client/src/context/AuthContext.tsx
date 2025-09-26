@@ -120,8 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     newSocket.on("getOnlineUsers", (userIds: string[]) => {
       setOnlineUsers(userIds);
-    })
-    
+    });
   }
 
 

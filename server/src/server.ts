@@ -26,8 +26,6 @@ declare global {
   var userSocketMap: { [userId: string]: string };
 }
 
-export { io };
-
 global.io = io;
 global.userSocketMap = userSocketMap;
 
@@ -40,7 +38,6 @@ io.on("connection", (socket) => {
   if (userId && typeof userId === 'string') {
     userSocketMap[userId] = socket.id;
 
-    // Emit online users to all connected clients
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
     socket.on("disconnect", () => {
