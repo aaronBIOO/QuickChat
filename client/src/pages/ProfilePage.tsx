@@ -7,7 +7,11 @@ import { AuthContext } from "@/context/AuthContext"
 
 function ProfilePage() {
 
-  const { authUser, updateProfile } = useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('AuthContext is not available');
+  }
+  const { authUser, updateProfile } = context;
 
   const [selectedImg, setSelectedImg] = useState<File | null>(null)
   const [name, setName] = useState(authUser?.fullName || "")
@@ -24,12 +28,14 @@ function ProfilePage() {
     }
   }
 
-  const reader = new FileReader();
-  reader.readAsDataURL(selectedImg);
-  reader.onload = async () => {
-    const base64Image = reader.result as string;
-    await updateProfile({ fullName: name, bio, profilePic: base64Image });
-    navigate("/");
+  if (selectedImg) {
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedImg);
+    reader.onload = async () => {
+      const base64Image = reader.result as string;
+      await updateProfile({ fullName: name, bio, profilePic: base64Image });
+      navigate("/");
+    }
   }
   
   return (
@@ -92,10 +98,9 @@ function ProfilePage() {
       <img 
         src={assets.logo_icon} 
         alt="" 
-        className="
-          max-w-40 aspect-square rounded-2xl mx-10 max-sm:mt-10 
-          hidden md:block
-        " 
+        className={`max-w-40 aspect-square rounded-2xl mx-10 max-sm:mt-10 
+          hidden md:block ${selectedImg && "rounded-full"}
+        `}
       />
       </div>
     </div>
