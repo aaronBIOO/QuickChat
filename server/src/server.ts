@@ -19,14 +19,12 @@ const io = new Server(server, {
   },
 });
 
-export const userSocketMap: { [userId: string]: string } = {};
+export const userSocketMap: Record<string, string> = {};
 
 declare global {
   var io: Server;
-  var userSocketMap: { [userId: string]: string };
+  var userSocketMap: Record<string, string>;
 }
-
-export { io };
 
 global.io = io;
 global.userSocketMap = userSocketMap;
@@ -40,7 +38,6 @@ io.on("connection", (socket) => {
   if (userId && typeof userId === 'string') {
     userSocketMap[userId] = socket.id;
 
-    // Emit online users to all connected clients
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
     socket.on("disconnect", () => {
@@ -48,6 +45,7 @@ io.on("connection", (socket) => {
       if (userId && typeof userId === 'string') {
         delete userSocketMap[userId];
       }
+      
       io.emit("getOnlineUsers", Object.keys(userSocketMap))
     });
   }

@@ -181,6 +181,7 @@ export const updateProfile = async (req: ExpressRequest, res: Response) => {
         const upload = await cloudinary.uploader.upload(profilePic);
 
         updatedUser = await User.findByIdAndUpdate(userId, {
+        
         profilePic: upload.secure_url, 
         fullName,
         bio
@@ -208,3 +209,25 @@ export const updateProfile = async (req: ExpressRequest, res: Response) => {
     })
   }
 }
+
+
+// Controller to logout user
+export const logout = async (req: ExpressRequest, res: Response) => {
+  try {
+    res.cookie("token", "", { 
+      maxAge: 0, 
+      httpOnly: true 
+    });
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Logged out successfully" 
+    });
+  } catch (error) {
+    console.error("Error in logout controller:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Internal Server Error during logout" 
+    });
+  }
+};

@@ -1,6 +1,8 @@
 import assets, { userDummyData } from "@/assets/assets"
 import { useNavigate } from "react-router-dom"
 import type { User } from "@/assets/assets"
+import { useContext } from "react"
+import { AuthContext } from "@/context/AuthContext"
 
 interface SidebarProps {
   selectedUser: User | null
@@ -8,6 +10,12 @@ interface SidebarProps {
 }
 
 function Sidebar({ selectedUser, setSelectedUser }: SidebarProps) {
+
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('AuthContext is not available');
+  }
+  const { logout } = context;
 
   const navigate = useNavigate();
 
@@ -41,7 +49,14 @@ function Sidebar({ selectedUser, setSelectedUser }: SidebarProps) {
               </p>
               <hr className="my-2 border-gray-500" />
               <p 
-                onClick={() => navigate('/login')} 
+                onClick={async () => {
+                  try {
+                    await logout();
+                    navigate('/login');
+                    } catch (error) {
+                    console.error("Logout failed:", error);
+                  }
+                }} 
                 className="cursor-pointer text-sm hover:text-red-500">
                 Logout
               </p>
