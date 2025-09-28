@@ -96,7 +96,7 @@ function ProfilePage() {
         </button>
       </form>
       <img 
-        src={assets.logo_icon} 
+        src={authUser?.profilePic || assets.logo_icon} 
         alt="" 
         className={`max-w-40 aspect-square rounded-2xl mx-10 max-sm:mt-10 
           hidden md:block ${selectedImg && "rounded-full"}
