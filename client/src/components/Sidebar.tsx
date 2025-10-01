@@ -20,6 +20,7 @@ function Sidebar() {
     selectedUser, 
     setSelectedUser,
     unseenMessage,
+    setUnseenMessage,
   } = chatContext;
   console.log("Users from ChatContext:", users);
   
@@ -107,7 +108,11 @@ function Sidebar() {
           <div 
             key={user._id}
             onClick={() => {
-              setSelectedUser(selectedUser?._id === user._id ? null : user)
+              setSelectedUser(user);
+              setUnseenMessage(prev => ({
+                ...prev,
+                [user._id]: 0
+              }));
             }}
             className={`
               relative flex items-center gap-3 p-2 pl-4

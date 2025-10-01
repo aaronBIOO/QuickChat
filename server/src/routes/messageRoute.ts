@@ -10,7 +10,7 @@ import {
 const messageRouter = express.Router();
 
 messageRouter.get("/users", protectRoute, getUsersForSidebar as RequestHandler);
-messageRouter.get("/:id", protectRoute, getMessages as RequestHandler);
+messageRouter.get("/users/:id", protectRoute, getMessages as RequestHandler);
 messageRouter.put("/mark/:id", protectRoute, markMessageAsSeen as RequestHandler);
 messageRouter.post("/send/:id", protectRoute, sendMessage as RequestHandler);
 

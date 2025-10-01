@@ -22,6 +22,8 @@ export interface User {
 export interface Message {
   _id: string;
   content: string;
+  text?: string;         
+  image?: string;        
   senderId: string;
   receiverId: string;
   seen: boolean;
@@ -34,7 +36,9 @@ export interface UnseenMessages {
 }
 
 export interface MessageData {
-  content: string;
+  content?: string;  
+  text?: string;     
+  image?: string;    
   type?: 'text' | 'image' | 'file';
   fileUrl?: string;
   fileName?: string;
@@ -53,4 +57,5 @@ export interface ChatContextType {
   getMessages: (userId: string) => Promise<void>;
   sendMessage: (messageData: MessageData) => Promise<void>;
   setSelectedUser: (user: User | null) => void;
+  setUnseenMessage: (unseenMessages: UnseenMessages | ((prev: UnseenMessages) => UnseenMessages)) => void;
 }
