@@ -141,7 +141,8 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
     getUsers,
     getMessages,
     sendMessage,
-    setSelectedUser
+    setSelectedUser,
+    setUnseenMessage
   }
 
   return (

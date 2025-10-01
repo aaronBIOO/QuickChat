@@ -20,6 +20,7 @@ function Sidebar() {
     selectedUser, 
     setSelectedUser,
     unseenMessage,
+    setUnseenMessage,
   } = chatContext;
   console.log("Users from ChatContext:", users);
   
@@ -107,12 +108,16 @@ function Sidebar() {
           <div 
             key={user._id}
             onClick={() => {
-              setSelectedUser(selectedUser?._id === user._id ? null : user)
+              setSelectedUser(user);
+              setUnseenMessage(prev => ({
+                ...prev,
+                [user._id]: 0
+              }));
             }}
             className={`
               relative flex items-center gap-3 p-2 pl-4
               rounded cursor-pointer max-sm:text-sm 
-              ${selectedUser?._id === user._id && "bg-[#282142]/50"}
+              ${selectedUser?._id === user._id && "bg-[#282142]/20 rounded-lg py-4"}
             `}>
             
             <img 
@@ -128,14 +133,14 @@ function Sidebar() {
               }
             </div>
               
-            {unseenMessage[user._id] && 
+            {unseenMessage[user._id] > 0 ? (
               <p className="
                 absolute top-4 right-4 text-xs w-5 h-5 flex justify-center 
                 items-center rounded-full bg-violet-500/50
                 ">
                 {unseenMessage[user._id]}
               </p>
-            }
+            ) : null}
           </div>
           ))}
       </div>

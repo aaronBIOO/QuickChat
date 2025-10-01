@@ -1,5 +1,5 @@
 import { useState } from "react"
-import ChatContainer from "@/components/chatContainer"
+import ChatContainer from "@/components/ChatContainer"
 import RightSidebar from "@/components/RightSidebar"
 import Sidebar from "@/components/Sidebar"
 import type { User } from "@/assets/assets"
@@ -16,10 +16,8 @@ function HomePage() {
         ${selectedUser ? "md:grid-cols-[1fr_1.8fr_1fr] xl:grid-cols-[1fr_2.5fr_1fr]" : "md:grid-cols-2"}
         `}>
         <Sidebar />
-        <ChatContainer  
-          selectedUser={selectedUser} 
-          setSelectedUser={setSelectedUser} 
-        />
+        <ChatContainer />
+        
         <RightSidebar 
           selectedUser={selectedUser} 
           setSelectedUser={setSelectedUser} 

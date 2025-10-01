@@ -18,7 +18,7 @@ type AuthenticatedRequest = ExpressRequest & {
 };
 
 
-// Get all users except the logged in user
+// get all users except the logged in user
 export const getUsersForSidebar = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const userId = req.user._id.toString();
@@ -49,7 +49,7 @@ export const getUsersForSidebar = async (req: AuthenticatedRequest, res: Respons
 }
 
 
-// Get all messages for selected user
+// get all messages for selected user
 export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id: selectedUserId } = req.params;
@@ -60,6 +60,7 @@ export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
         {senderId: selectedUserId, receiverId: myId}
       ]
     });
+    
     await Message.updateMany({senderId: selectedUserId, receiverId: myId}, {seen: true});
     res.json({
       success: true, 

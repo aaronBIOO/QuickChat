@@ -1,35 +1,99 @@
-import type { User } from "@/assets/assets"
-import assets, { messagesDummyData } from "@/assets/assets"
 import { formatMessageTime } from "@/lib/utils"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useContext } from "react"
+import { ChatContext } from "@/context/ChatContext"
+import { AuthContext } from "@/context/AuthContext"
+import { toast } from "react-hot-toast"
+import assets from "@/assets/assets"
 
-interface ChatContainerProps {
-  selectedUser: User | null
-  setSelectedUser: (user: User | null) => void
-}
-
-function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
-
+function ChatContainer() {
+  
+  const chatContext = useContext(ChatContext);
+  const authContext = useContext(AuthContext);
   const scrollEnd = useRef<HTMLDivElement>(null);
+  const [input, setInput] = useState("");
 
+  
+  if (!chatContext) {
+    throw new Error('ChatContext must be used within a ChatProvider');
+  }
+  
+  if (!authContext) {
+    throw new Error('AuthContext must be used within an AuthProvider');
+  }
+
+
+  const { 
+    messages, 
+    selectedUser, 
+    setSelectedUser, 
+    sendMessage, 
+    getMessages 
+  } = chatContext;
+  
+  const { authUser, onlineUsers } = authContext;
+
+
+  // get messages
   useEffect(() => {
-    if(scrollEnd.current) {
+    if (selectedUser) {
+      getMessages(selectedUser._id);
+    }
+  }, [selectedUser]);
+
+
+  // scroll to bottom upon new message addition
+  useEffect(() => {
+    if (scrollEnd.current && messages) {
       scrollEnd.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, []);
+  }, [messages]);
+
+
+  // send message
+  const handleSendMessage = async (e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent) => {
+    e.preventDefault();
+    if (input.trim() === "") return null;
+    await sendMessage({text: input.trim()});
+    setInput("");
+  }
+
+
+  // send image
+  const handleSendImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    };
+    
+    const reader = new FileReader();
+    
+    reader.onload = async () => {
+      await sendMessage({image: reader.result as string});
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  }
+
 
   return selectedUser ? (
     <div className="h-full overflow-scroll relative backdrop-blur-lg">
+      
       {/* header */}
       <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500">
         <img 
-          src={assets.profile_martin} 
+          src={selectedUser.profilePic || assets.avatar_icon} 
           alt="" 
           className="w-8 rounded-full" 
         />
         <p className="flex-1 text-lg text-white flex items-center gap-2">
-          Martin Johnson
-          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+          {selectedUser.fullName}
+          {onlineUsers.includes(selectedUser._id) 
+            ? <span className="w-2 h-2 rounded-full bg-green-500"></span> 
+            : <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+          }
         </p>
         <img 
           src={assets.arrow_icon} 
@@ -44,58 +108,61 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
         />
       </div>
 
+
       {/* chat area */}
       <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-3">
-        {
-          messagesDummyData.map((msg, index) => (
-            <div 
-              key={index}
-              className={`
-                flex item-end gap-2 justify-end 
-                ${msg.senderId !== "680f50e4f10f3cd28382ecf9" && "flex-row-reverse"}
-                `}>
-              {
-                msg.image
-                ? (
-                    <img 
-                      src={msg.image} 
-                      alt="" 
-                      className="
-                        max-w-[230px] border border-gray-700 rounded-lg
-                        overflow-hidden mb-8
-                      " 
-                    />
-                 ):(
-                    <p className={`
-                      p-2 max-w-[230px] md:text-sm font-light 
-                      rounded-lg mb-8 break-all bg-violet-500/30 text-white
-                      ${msg.senderId === "680f50e4f10f3cd28382ecf9" ? "rounded-br-none" : "rounded-bl-none"}
-                      `}>
-                      {msg.text}
-                    </p>
-                 )
-              }
-
-              <div className="text-center text-xs">
-                <img 
-                  src={msg.senderId === "680f50e4f10f3cd28382ecf9" ? assets.avatar_icon : assets.profile_martin} 
-                  alt="" 
-                  className="w-7 rounded-full"
-                />
-                <p className="text-gray-500">{formatMessageTime(msg.createdAt)}</p>
-              </div>
-            </div>
-          ))
-        }
+        {messages.map((msg, index) => (
+          <div 
+            key={index}
+            className={`
+              flex item-end gap-2 justify-end 
+              ${msg.senderId !== authUser?._id && "flex-row-reverse"}
+            `}>
+              {msg.image ?
+              (<img 
+                src={msg.image} 
+                alt="" 
+                className="
+                  max-w-[230px] border-5 border-violet-500/30 rounded-lg
+                  overflow-hidden mb-8
+                " 
+                />) : (
+                <p className={`
+                  p-3 max-w-[230px] md:text-sm font-light 
+                  rounded-2xl mb-8 break-all bg-violet-500/30 text-white
+                  ${msg.senderId === authUser?._id 
+                    ? "bg-violet-500/30 rounded-br-none" 
+                    : "bg-gray-700/50 rounded-bl-none"
+                  }
+                  `}>
+                  {msg.text}
+                  <span className={`
+                    block text-xs text-gray-500 text-right pt-1 
+                    ${msg.senderId === authUser?._id ? "text-left" : "text-right"}`}>
+                    {formatMessageTime(msg.createdAt)}
+                  </span>
+                </p>
+              )}
+          </div>
+          ))}
         <div ref={scrollEnd}></div>
       </div>
       
+
       {/* text input area */}
       <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3">
         <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
           <input 
             type="text" 
             placeholder="Send a message" 
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+            value={input}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => { 
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSendMessage(e);
+              }
+            }}
             className="
               flex-1 text-sm p-3 border-none rounded-lg outline-none 
               text-white placeholder-gray-400
@@ -106,6 +173,7 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
             id="image" 
             accept="image/png, image/jpeg" 
             hidden 
+            onChange={handleSendImage}
           />
           <label htmlFor="image">
             <img 
@@ -117,7 +185,8 @@ function ChatContainer({ selectedUser, setSelectedUser }: ChatContainerProps) {
         </div>
         <img 
           src={assets.send_button} 
-          alt="" 
+          alt=""
+          onClick={handleSendMessage} 
           className="w-9 cursor-pointer mr-2" 
         />
       </div>
