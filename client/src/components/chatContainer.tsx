@@ -90,7 +90,10 @@ function ChatContainer() {
         />
         <p className="flex-1 text-lg text-white flex items-center gap-2">
           {selectedUser.fullName}
-          {onlineUsers.includes(selectedUser._id)}<span className="w-2 h-2 rounded-full bg-green-500"></span>
+          {onlineUsers.includes(selectedUser._id) 
+            ? <span className="w-2 h-2 rounded-full bg-green-500"></span> 
+            : <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+          }
         </p>
         <img 
           src={assets.arrow_icon} 
@@ -114,39 +117,34 @@ function ChatContainer() {
             className={`
               flex item-end gap-2 justify-end 
               ${msg.senderId !== authUser?._id && "flex-row-reverse"}
-              `}>
-            {msg.image ?
+            `}>
+              {msg.image ?
               (<img 
                 src={msg.image} 
                 alt="" 
                 className="
-                  max-w-[230px] border border-gray-700 rounded-lg
+                  max-w-[230px] border-5 border-violet-500/30 rounded-lg
                   overflow-hidden mb-8
                 " 
                 />) : (
                 <p className={`
-                  p-2 max-w-[230px] md:text-sm font-light 
-                  rounded-lg mb-8 break-all bg-violet-500/30 text-white
-                  ${msg.senderId === authUser?._id ? "rounded-br-none" : "rounded-bl-none"}
+                  p-3 max-w-[230px] md:text-sm font-light 
+                  rounded-2xl mb-8 break-all bg-violet-500/30 text-white
+                  ${msg.senderId === authUser?._id 
+                    ? "bg-violet-500/30 rounded-br-none" 
+                    : "bg-gray-700/50 rounded-bl-none"
+                  }
                   `}>
                   {msg.text}
+                  <span className={`
+                    block text-xs text-gray-500 text-right pt-1 
+                    ${msg.senderId === authUser?._id ? "text-left" : "text-right"}`}>
+                    {formatMessageTime(msg.createdAt)}
+                  </span>
                 </p>
               )}
-                    
-
-            <div className="text-center text-xs">
-              <img 
-                src={msg.senderId === authUser?._id ? 
-                  authUser?.profilePic || assets.avatar_icon : 
-                  selectedUser?.profilePic || assets.avatar_icon } 
-                alt="" 
-                className="w-7 rounded-full"  
-              />
-              <p className="text-gray-500">{formatMessageTime(msg.createdAt)}</p>
-            </div>
           </div>
           ))}
-         
         <div ref={scrollEnd}></div>
       </div>
       
