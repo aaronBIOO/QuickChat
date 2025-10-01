@@ -11,8 +11,6 @@ declare global {
   var userSocketMap: { [userId: string]: string };
 }
 
-
-// Extend ExpressRequest to include the user property
 type AuthenticatedRequest = ExpressRequest & {
   user: {
     _id: string | any; 
@@ -78,7 +76,7 @@ export const getMessages = async (req: AuthenticatedRequest, res: Response) => {
 }
 
 
-// api to mark message as seen using message id
+// mark message as seen using message id
 export const markMessageAsSeen = async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { id } = req.params;

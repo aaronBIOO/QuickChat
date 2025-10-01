@@ -13,7 +13,7 @@ interface AuthUser {
   profilePic?: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   axios: typeof axios;
   authUser: AuthUser | null;
   onlineUsers: string[];
@@ -24,7 +24,7 @@ interface AuthContextType {
   checkAuth: () => Promise<void>;
 }
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL as string;
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 axios.defaults.baseURL = backendUrl;
 axios.defaults.withCredentials = true;
 
