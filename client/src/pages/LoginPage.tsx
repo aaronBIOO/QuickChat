@@ -17,6 +17,7 @@ function LoginPage() {
     throw new Error('AuthContext is not available');
   }
   
+  
   const { login } = authContext;
 
   const onSubmitHandler = (e: React.FormEvent<HTMLFormElement>) => {

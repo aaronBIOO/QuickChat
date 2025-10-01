@@ -28,7 +28,7 @@ interface LoginBody {
 }
 
 
-// controller to signup new user
+// signup new user
 export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
   
   const { email, fullName, password, bio } = req.body;
@@ -61,8 +61,8 @@ export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Respo
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development",
+      sameSite: "strict", 
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -91,7 +91,7 @@ export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Respo
 }
 
 
-// controller to login user
+// login user
 export const login = async (req: ExpressRequest<{}, {}, LoginBody>, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -147,7 +147,7 @@ export const login = async (req: ExpressRequest<{}, {}, LoginBody>, res: Respons
 }
 
 
-// controller to check if user is authenticated
+// check if user is authenticated
 export const checkAuth = async (req: ExpressRequest, res: Response) => {
   res.json({
     success: true, 
@@ -156,7 +156,7 @@ export const checkAuth = async (req: ExpressRequest, res: Response) => {
 }
 
 
-// controller to update user profile 
+// update user profile 
 export const updateProfile = async (req: ExpressRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ 
@@ -211,7 +211,7 @@ export const updateProfile = async (req: ExpressRequest, res: Response) => {
 }
 
 
-// Controller to logout user
+// logout user
 export const logout = async (req: ExpressRequest, res: Response) => {
   try {
     res.cookie("token", "", { 
