@@ -15,10 +15,7 @@ function HomePage() {
         overflow-hidden h-[100%] grid relative
         ${selectedUser ? "md:grid-cols-[1fr_1.8fr_1fr] xl:grid-cols-[1fr_2.5fr_1fr]" : "md:grid-cols-2"}
         `}>
-        <Sidebar 
-          selectedUser={selectedUser} 
-          setSelectedUser={setSelectedUser} 
-        />
+        <Sidebar />
         <ChatContainer  
           selectedUser={selectedUser} 
           setSelectedUser={setSelectedUser} 

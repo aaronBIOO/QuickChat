@@ -36,10 +36,16 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
   // get all users for sidebar
   const getUsers = useCallback(async () => {
     try {
-      const { data } = await axios.get<{ users: User[]; unseenMessage: Record<string, number> }>('/api/messages/users');
-      if (data.success && data.users && data.unseenMessage) {
+      const { data } = await axios.get<{ users: User[]; unseenMessages: Record<string, number> }>('/api/messages/users');
+      console.log("getUsers response", data);
+      if (data.success && data.users) {
         setUsers(data.users);
-        setUnseenMessage(data.unseenMessage);
+        console.log("Users stored in state:", data.users);
+      }
+
+      if (data.success && data.unseenMessages) {
+        setUnseenMessage(data.unseenMessages);
+        console.log("Unseen messages stored in state:", data.unseenMessages);
       }
 
     } catch (error) {
@@ -68,7 +74,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
   
 
 
-  // send message
+  // send message to selected user
   const sendMessage = useCallback(async (messageData: MessageData) => {
     if (!selectedUser) {
       toast.error('No user selected');
