@@ -17,7 +17,6 @@ function HomePage() {
         `}>
         <Sidebar />
         <ChatContainer />
-        
         <RightSidebar 
           selectedUser={selectedUser} 
           setSelectedUser={setSelectedUser} 

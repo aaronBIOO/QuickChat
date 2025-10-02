@@ -18,6 +18,7 @@ export interface AuthContextType {
   authUser: AuthUser | null;
   onlineUsers: string[];
   socket: Socket | null;
+  loading: boolean;
   login: (state: 'login' | 'signup', credentials: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (body: { fullName?: string; bio?: string; profilePic?: string }) => Promise<void>;
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkAuth();
@@ -48,6 +50,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.success) {
         setAuthUser(data.user)
         connectSocket(data.user)
+      } else {
+        setAuthUser(null);
       }
     } catch (error: unknown) {
       setAuthUser(null);
@@ -60,6 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -138,10 +144,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     authUser,
     onlineUsers,
     socket,
+    loading,
     login,
     logout,
     updateProfile,
-    checkAuth
+    checkAuth,
   }
 
   

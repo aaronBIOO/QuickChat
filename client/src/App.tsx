@@ -1,3 +1,4 @@
+import { Skeleton } from "@/components/ui/skeleton";
 import { Route, Routes, Navigate } from "react-router-dom"
 import HomePage from "@/app/HomePage"
 import LoginPage from "@/app/LoginPage"
@@ -11,6 +12,20 @@ function App() {
 
   const context = useContext(AuthContext);
   const authUser = context?.authUser;
+  const loading = context?.loading;
+
+
+  if (loading) {
+    return (
+      <div className="
+      w-full h-screen flex gap-1 items-center 
+      justify-center bg-black p-10
+      ">
+      <Skeleton className="h-[80%] w-[40%] rounded-lg" />
+      <Skeleton className="h-[80%] w-[40%] rounded-lg" />
+    </div>
+    );
+  }
 
   return (
     <div className="
