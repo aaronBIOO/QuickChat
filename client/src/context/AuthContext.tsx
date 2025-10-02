@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -37,6 +37,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   // check if user is authenticated and if so, set user data and connect socket
   const checkAuth = async (): Promise<void> => {
@@ -48,6 +51,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: unknown) {
       setAuthUser(null);
+
+      if (axios.isAxiosError(error) && error.response?.data.message === "Session expired. Please log in again.") {
+        await logout();
+        toast.error("Session expired. Please log in again.");
+        return;
+      }
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);
       console.error(error);

@@ -20,7 +20,6 @@ export const protectRoute = async (req: ExpressRequest, res: Response, next: Nex
   try {
     const token = req.cookies.token as string;
 
-    // Check if the token was found in the cookie
     if (!token) {
       return res.status(401).json({
           success: false,
@@ -28,6 +27,7 @@ export const protectRoute = async (req: ExpressRequest, res: Response, next: Nex
       });
     }
 
+    // verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
 
     const user = await User.findById(decoded.userId).select("-password");
@@ -43,7 +43,22 @@ export const protectRoute = async (req: ExpressRequest, res: Response, next: Nex
     next();
     
   } catch (error) {
-    console.error(error);
+    console.error("Auth middleware error: ", error);
+
+    if (error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "session expired. Please login again", 
+      });
+    }
+
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "invalid token. Please login again",
+      });
+    }
+
     return res.status(401).json({ 
       success: false, 
       message: error instanceof Error ? error.message : 'Unauthorized' 
