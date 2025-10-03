@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -18,6 +18,7 @@ export interface AuthContextType {
   authUser: AuthUser | null;
   onlineUsers: string[];
   socket: Socket | null;
+  loading: boolean;
   login: (state: 'login' | 'signup', credentials: { email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (body: { fullName?: string; bio?: string; profilePic?: string }) => Promise<void>;
@@ -36,7 +37,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   // check if user is authenticated and if so, set user data and connect socket
   const checkAuth = async (): Promise<void> => {
@@ -45,12 +50,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.success) {
         setAuthUser(data.user)
         connectSocket(data.user)
+      } else {
+        setAuthUser(null);
       }
     } catch (error: unknown) {
       setAuthUser(null);
+
+      if (axios.isAxiosError(error) && error.response?.data.message === "Session expired. Please log in again.") {
+        await logout();
+        toast.error("Session expired. Please log in again.");
+        return;
+      }
       const errorMessage = error instanceof Error ? error.message : 'An error occurred';
       toast.error(errorMessage);
       console.error(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -129,10 +144,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     authUser,
     onlineUsers,
     socket,
+    loading,
     login,
     logout,
     updateProfile,
-    checkAuth
+    checkAuth,
   }
 
   

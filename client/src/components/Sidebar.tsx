@@ -4,6 +4,7 @@ import { useContext, useState } from "react"
 import { AuthContext, type AuthContextType } from "@/context/AuthContext"
 import { ChatContext } from "@/context/ChatContext"
 import type { ChatContextType, User } from "@/types/chat.types"
+import { Search } from "lucide-react"
 
 
 function Sidebar() {
@@ -37,7 +38,7 @@ function Sidebar() {
   
   return (
     <div className={`
-      bg-[#8185B2]/10 h-full p-5 overflow-y-scroll text-white
+      bg-black h-full p-5 overflow-y-scroll text-white/70
       ${selectedUser ? "max-md:hidden rounded-r-xl" : ""}
       `}>
       {/* header: logo & menu bar */}
@@ -46,7 +47,7 @@ function Sidebar() {
           <img 
             src={assets.logo} 
             alt="logo" 
-            className="max-w-40 color-gray-500" 
+            className="max-w-25 color-gray-500" 
           />
           <div className="relative py-2 group">
             <img 
@@ -55,8 +56,8 @@ function Sidebar() {
               className="max-h-5 cursor-pointer" 
             />
             <div className="
-              hidden group-hover:block absolute top-full right-0 z-20 w-32 p-5
-              border border-gray-600 rounded-md bg-[#282142] text-gray-100 shadow-md
+              hidden group-hover:block absolute top-full right-0 z-20 w-32 p-5 backdrop-blur-2xl
+              border border-gray-600 rounded-md bg-gray-100/8 text-gray-100 shadow-md 
               ">
               <p 
                 onClick={() => navigate('/profile')} 
@@ -82,13 +83,12 @@ function Sidebar() {
 
         {/* search bar */}
         <div className="
-          bg-[#282142] rounded-full flex items-center 
+          bg-gray-100/8 rounded-full flex items-center 
           gap-2 py-3 px-4 mt-5 shadow-md 
           ">
-          <img 
-            src={assets.search_icon} 
-            alt="search" 
-            className="w-3" 
+          <Search 
+            className="w-4.5 h-4.5 text-gray-400"
+            strokeWidth={2.5}
           />
           <input 
             type="text" 
@@ -115,32 +115,33 @@ function Sidebar() {
               }));
             }}
             className={`
-              relative flex items-center gap-3 p-2 pl-4
-              rounded cursor-pointer max-sm:text-sm 
-              ${selectedUser?._id === user._id && "bg-[#282142]/20 rounded-lg py-4"}
+              group relative flex items-center gap-3 p-2 pl-4
+              rounded cursor-pointer max-sm:text-sm hover:bg-[#1F1D1D]/30 active:bg-[#1F1D1D]/50 
+              ${selectedUser?._id === user._id}
             `}>
-            
             <img 
               src={user?.profilePic || assets.avatar_icon} 
               alt="user" 
               className="w-[35px] aspect-[1/1] rounded-full"
             />
-            <div className="flex flex-col leading-5">
+            <div className="flex flex-col leading-5 w-full">
               <p>{user.fullName}</p>
               {onlineUsers.includes(user._id)
                 ? <span className="text-green-400 text-xs">Online</span>
                 : <span className="text-neutral-400 text-xs">Offline</span>
               }
+              <hr className="my-2 border-gray-500/15 group-hover:border-transparent" />
             </div>
               
             {unseenMessage[user._id] > 0 ? (
               <p className="
                 absolute top-4 right-4 text-xs w-5 h-5 flex justify-center 
-                items-center rounded-full bg-violet-500/50
+                items-center rounded-full bg-blue-500/50
                 ">
                 {unseenMessage[user._id]}
               </p>
             ) : null}
+            
           </div>
           ))}
       </div>
