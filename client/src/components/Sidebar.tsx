@@ -47,7 +47,7 @@ function Sidebar() {
           <img 
             src={assets.logo} 
             alt="logo" 
-            className="max-w-40 color-gray-500" 
+            className="max-w-25 color-gray-500" 
           />
           <div className="relative py-2 group">
             <img 
@@ -136,7 +136,7 @@ function Sidebar() {
             {unseenMessage[user._id] > 0 ? (
               <p className="
                 absolute top-4 right-4 text-xs w-5 h-5 flex justify-center 
-                items-center rounded-full bg-violet-500/50
+                items-center rounded-full bg-blue-500/50
                 ">
                 {unseenMessage[user._id]}
               </p>

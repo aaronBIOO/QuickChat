@@ -187,7 +187,7 @@ function ChatContainer() {
         <div className="flex items-center w-10 h-10 rounded-full cursor-pointer bg-gray-100/12 p-2">
           <SendHorizonal 
             onClick={handleSendMessage} 
-            className="w-8 cursor-pointer text-blue-500/50" 
+            className={`w-8 cursor-pointer text-blue-500/50 ${input.trim() ? "text-blue-500/50" : "text-gray-600"}`}
             strokeWidth={2.5}
           />
         </div>
@@ -201,7 +201,7 @@ function ChatContainer() {
       <img 
         src={assets.logo_icon} 
         alt="" 
-        className="max-w-16" 
+        className="max-w-40" 
       />
       <p className="text-lg font-medium text-white">
         Chat anytime, anywhere
