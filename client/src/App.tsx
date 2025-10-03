@@ -3,7 +3,7 @@ import { Route, Routes, Navigate } from "react-router-dom"
 import HomePage from "@/app/HomePage"
 import LoginPage from "@/app/LoginPage"
 import ProfilePage from "@/app/ProfilePage"
-import {Toaster} from "react-hot-toast"
+import { Toaster } from "react-hot-toast"
 import { AuthContext } from "@/context/AuthContext"
 import { useContext } from "react"
 
@@ -28,11 +28,7 @@ function App() {
   }
 
   return (
-    <div className="
-      w-full h-screen
-      bg-black
-      bg-contain
-      ">
+    <div className="w-full h-screen bg-black bg-contain">
       <Toaster />
       <Routes>
         <Route 

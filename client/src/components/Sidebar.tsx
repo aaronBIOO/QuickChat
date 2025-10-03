@@ -56,8 +56,8 @@ function Sidebar() {
               className="max-h-5 cursor-pointer" 
             />
             <div className="
-              hidden group-hover:block absolute top-full right-0 z-20 w-32 p-5
-              border border-gray-600 rounded-md bg-[#282142] text-gray-100 shadow-md
+              hidden group-hover:block absolute top-full right-0 z-20 w-32 p-5 backdrop-blur-2xl
+              border border-gray-600 rounded-md bg-gray-100/8 text-gray-100 shadow-md 
               ">
               <p 
                 onClick={() => navigate('/profile')} 
@@ -115,8 +115,8 @@ function Sidebar() {
               }));
             }}
             className={`
-              relative flex items-center gap-3 p-2 pl-4
-              rounded cursor-pointer max-sm:text-sm hover:bg-gray-100/10
+              group relative flex items-center gap-3 p-2 pl-4
+              rounded cursor-pointer max-sm:text-sm hover:bg-[#1F1D1D]/30 active:bg-[#1F1D1D]/50 
               ${selectedUser?._id === user._id}
             `}>
             <img 
@@ -130,7 +130,7 @@ function Sidebar() {
                 ? <span className="text-green-400 text-xs">Online</span>
                 : <span className="text-neutral-400 text-xs">Offline</span>
               }
-              <hr className="my-2 border-gray-500/15" />
+              <hr className="my-2 border-gray-500/15 group-hover:border-transparent" />
             </div>
               
             {unseenMessage[user._id] > 0 ? (

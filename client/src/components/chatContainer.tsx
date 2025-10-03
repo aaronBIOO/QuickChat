@@ -5,6 +5,7 @@ import { ChatContext } from "@/context/ChatContext"
 import { AuthContext } from "@/context/AuthContext"
 import { toast } from "react-hot-toast"
 import assets from "@/assets/assets"
+import { ArrowLeft, SendHorizonal } from "lucide-react"
 
 function ChatContainer() {
   
@@ -81,10 +82,14 @@ function ChatContainer() {
   return selectedUser ? (
     <div className="
     h-full overflow-scroll relative backdrop-blur-lg 
-    bg-black md:border-l-1 md:border-stone-500/25
+    bg-black md:border-l-1 md:border-stone-500/10
     ">
       {/* header */}
-      <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500/25">
+      <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500/10">
+        <ArrowLeft 
+          className="md:hidden max-w-7 cursor-pointer text-white/40"
+          onClick={() => setSelectedUser(null)}
+        />
         <img 
           src={selectedUser.profilePic || assets.avatar_icon} 
           alt="" 
@@ -98,12 +103,6 @@ function ChatContainer() {
           }
         </p>
         <img 
-          src={assets.arrow_icon} 
-          alt="" 
-          className="md:hidden max-w-7 cursor-pointer"
-          onClick={() => setSelectedUser(null)}
-        />
-        <img 
           src={assets.help_icon}
           alt=""
           className="max-md:hidden max-w-5"
@@ -111,8 +110,8 @@ function ChatContainer() {
       </div>
 
 
-      {/* chat area */}
-      <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-4">
+      {/* text exchange area */}
+      <div className="flex flex-col h-[calc(100%-130px)] overflow-y-scroll p-4 bg-gray-100/4">
         {messages.map((msg, index) => (
           <div 
             key={index}
@@ -139,7 +138,7 @@ function ChatContainer() {
                   `}>
                   {msg.text}
                   <span className={`
-                    block text-xs text-gray-500 text-right pt-1 
+                    block text-xs text-gray-500 text-right pt-0.5 
                     ${msg.senderId === authUser?._id ? "text-left" : "text-right"}`}>
                     {formatMessageTime(msg.createdAt)}
                   </span>
@@ -152,7 +151,7 @@ function ChatContainer() {
       
 
       {/* text input area */}
-      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3">
+      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-3 p-3 pl-5 pb-5">
         <div className="flex-1 flex items-center bg-gray-100/12 px-3 rounded-full">
           <input 
             type="text" 
@@ -185,18 +184,19 @@ function ChatContainer() {
             />
           </label>
         </div>
-        <img 
-          src={assets.send_button} 
-          alt=""
-          onClick={handleSendMessage} 
-          className="w-9 cursor-pointer mr-2" 
-        />
+        <div className="flex items-center w-10 h-10 rounded-full cursor-pointer bg-gray-100/12 p-2">
+          <SendHorizonal 
+            onClick={handleSendMessage} 
+            className="w-8 cursor-pointer text-blue-500/50" 
+            strokeWidth={2.5}
+          />
+        </div>
       </div>
     </div>
   ) : (
     <div className="
       flex flex-col items-center justify-center gap-2 text-gray-500
-      bg-white/10 max-md:hidden
+      bg-gray-100/4  max-md:hidden
       ">
       <img 
         src={assets.logo_icon} 
