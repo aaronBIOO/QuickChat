@@ -30,7 +30,8 @@ function App() {
   return (
     <div className="
       w-full h-screen
-      bg-[url('./src/assets/bgImage.svg')] bg-contain
+      bg-black
+      bg-contain
       ">
       <Toaster />
       <Routes>

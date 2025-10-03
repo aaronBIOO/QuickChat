@@ -4,6 +4,7 @@ import { useContext, useState } from "react"
 import { AuthContext, type AuthContextType } from "@/context/AuthContext"
 import { ChatContext } from "@/context/ChatContext"
 import type { ChatContextType, User } from "@/types/chat.types"
+import { Search } from "lucide-react"
 
 
 function Sidebar() {
@@ -37,7 +38,7 @@ function Sidebar() {
   
   return (
     <div className={`
-      bg-[#8185B2]/10 h-full p-5 overflow-y-scroll text-white
+      bg-black h-full p-5 overflow-y-scroll text-white/70
       ${selectedUser ? "max-md:hidden rounded-r-xl" : ""}
       `}>
       {/* header: logo & menu bar */}
@@ -82,13 +83,12 @@ function Sidebar() {
 
         {/* search bar */}
         <div className="
-          bg-[#282142] rounded-full flex items-center 
+          bg-gray-100/8 rounded-full flex items-center 
           gap-2 py-3 px-4 mt-5 shadow-md 
           ">
-          <img 
-            src={assets.search_icon} 
-            alt="search" 
-            className="w-3" 
+          <Search 
+            className="w-4.5 h-4.5 text-gray-400"
+            strokeWidth={2.5}
           />
           <input 
             type="text" 
@@ -116,21 +116,21 @@ function Sidebar() {
             }}
             className={`
               relative flex items-center gap-3 p-2 pl-4
-              rounded cursor-pointer max-sm:text-sm 
-              ${selectedUser?._id === user._id && "bg-[#282142]/20 rounded-lg py-4"}
+              rounded cursor-pointer max-sm:text-sm hover:bg-gray-100/10
+              ${selectedUser?._id === user._id}
             `}>
-            
             <img 
               src={user?.profilePic || assets.avatar_icon} 
               alt="user" 
               className="w-[35px] aspect-[1/1] rounded-full"
             />
-            <div className="flex flex-col leading-5">
+            <div className="flex flex-col leading-5 w-full">
               <p>{user.fullName}</p>
               {onlineUsers.includes(user._id)
                 ? <span className="text-green-400 text-xs">Online</span>
                 : <span className="text-neutral-400 text-xs">Offline</span>
               }
+              <hr className="my-2 border-gray-500/15" />
             </div>
               
             {unseenMessage[user._id] > 0 ? (
@@ -141,6 +141,7 @@ function Sidebar() {
                 {unseenMessage[user._id]}
               </p>
             ) : null}
+            
           </div>
           ))}
       </div>

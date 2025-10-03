@@ -79,10 +79,12 @@ function ChatContainer() {
 
 
   return selectedUser ? (
-    <div className="h-full overflow-scroll relative backdrop-blur-lg">
-      
+    <div className="
+    h-full overflow-scroll relative backdrop-blur-lg 
+    bg-black md:border-l-1 md:border-stone-500/25
+    ">
       {/* header */}
-      <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500">
+      <div className="flex items-center gap-3 py-3 mx-4 border-b border-stone-500/25">
         <img 
           src={selectedUser.profilePic || assets.avatar_icon} 
           alt="" 
@@ -110,7 +112,7 @@ function ChatContainer() {
 
 
       {/* chat area */}
-      <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-3">
+      <div className="flex flex-col h-[calc(100%-120px)] overflow-y-scroll p-4">
         {messages.map((msg, index) => (
           <div 
             key={index}
@@ -123,15 +125,15 @@ function ChatContainer() {
                 src={msg.image} 
                 alt="" 
                 className="
-                  max-w-[230px] border-5 border-violet-500/30 rounded-lg
+                  max-w-[230px] border-5 border-blue-500 rounded-lg
                   overflow-hidden mb-8
                 " 
                 />) : (
                 <p className={`
                   p-3 max-w-[230px] md:text-sm font-light 
-                  rounded-2xl mb-8 break-all bg-violet-500/30 text-white
+                  rounded-2xl mb-8 break-all bg-blue-500/50 text-white
                   ${msg.senderId === authUser?._id 
-                    ? "bg-violet-500/30 rounded-br-none" 
+                    ? "bg-blue-500/50 rounded-br-none" 
                     : "bg-gray-700/50 rounded-bl-none"
                   }
                   `}>

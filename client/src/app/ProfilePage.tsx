@@ -39,14 +39,14 @@ function ProfilePage() {
   }
   
   return (
-    <div className="min-h-screen bg-cover bg-no-repeat flex items-center justify-center ">
+    <div className="min-h-screen bg-cover bg-no-repeat flex items-center justify-center w-full">
       <div className="
-        w-5/6 max-w-2xl backdrop-blur-2xl text-gray-300 border-2 border-gray-600 
-        flex items-center justify-center max-sm:flex-col-reverse rounded-lg
-        md:w-[50%]
+        w-5/6 backdrop-blur-2xl text-gray-300 border-2 border-gray-600 
+        flex items-center justify-center rounded-lg
+        md:w-[30%] p-0
       ">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-10 flex-1">
-        <h3 className="text-lg">Profile details</h3>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 p-4 w-full">
+        <h2 className="text-xl">Profile</h2>
         <label htmlFor="avatar" className="flex item-center gap-3 cursor-pointer">
           <input 
             type="file" 
@@ -64,7 +64,6 @@ function ProfilePage() {
             alt="" 
             className={`w-12 h-12 ${selectedImg && "rounded-full"}`} 
           />
-          upload profile image
         </label>
         <input 
           type="text" 
@@ -72,7 +71,7 @@ function ProfilePage() {
           value={name} 
           onChange={(e) => setName(e.target.value)} 
           className="
-            p-2 border border-gray-600 rounded-md 
+            p-2 border border-gray-600 rounded-md text-white/50
             focus:outline-none focus:ring-2 focus:ring-indigo-500
           "
         />
@@ -83,7 +82,7 @@ function ProfilePage() {
           value={bio}
           onChange={(e) => setBio(e.target.value)}
           className="
-            p-2 border border-gray-600 rounded-md focus:outline-none
+            p-2 border border-gray-600 rounded-md focus:outline-none text-white/50
             focus:ring-2 focus:ring-indigo-500 min-h-[30px] max-h-[80px]
           " 
         />
@@ -95,13 +94,6 @@ function ProfilePage() {
           Save Changes
         </button>
       </form>
-      <img 
-        src={authUser?.profilePic || assets.logo_icon} 
-        alt="" 
-        className={`max-w-40 aspect-square rounded-2xl mx-10 max-sm:mt-10 
-          hidden md:block ${selectedImg && "rounded-full"}
-        `}
-      />
       </div>
     </div>
   )
