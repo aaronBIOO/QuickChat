@@ -2,9 +2,9 @@ import { Response } from "express";
 import { Request as ExpressRequest } from "express";
 import User from "@/models/user";
 import bcrypt from "bcryptjs";
-import { generateToken } from "@/lib/utils";
-import { sanitizeUser } from "@/lib/utils";
-import cloudinary from "@/lib/cloudinary"
+import { generateToken } from "@/utils/utils";
+import { sanitizeUser } from "@/utils/utils";
+import cloudinary from "@/config/cloudinary"
 
 
 interface IUserInput {

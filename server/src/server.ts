@@ -2,55 +2,18 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import http from "http";
-import { connectToDB } from "@/lib/db";
+import { connectToDB } from "@/config/db";
 import userRouter from "@/routes/userRoutes";
 import messageRouter from "@/routes/messageRoute";
 import cookieParser from "cookie-parser";
-import { Server } from "socket.io";
-
+import { setupSocket } from "@/config/socket";
 
 dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL,
-  },
-});
 
-export const userSocketMap: Record<string, string> = {};
-
-declare global {
-  var io: Server;
-  var userSocketMap: Record<string, string>;
-}
-
-global.io = io;
-global.userSocketMap = userSocketMap;
-
-
-// socket.io connection handler
-io.on("connection", (socket) => {
-  const userId = socket.handshake.query.userId as string | undefined;
-  console.log("User Connected", userId);
-
-  if (userId && typeof userId === 'string') {
-    userSocketMap[userId] = socket.id;
-
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-    socket.on("disconnect", () => {
-      console.log("user disconnected", userId);
-      if (userId && typeof userId === 'string') {
-        delete userSocketMap[userId];
-      }
-      
-      io.emit("getOnlineUsers", Object.keys(userSocketMap))
-    });
-  }
-});
-
+setupSocket(server);
 
 // middleware
 app.use(express.json({ limit: "4mb" }));
@@ -66,7 +29,6 @@ app.get("/", (req: Request, res: Response): void => {
 });
 
 
-// database connection & starting server
 const startServer = async (): Promise<void> => {
   try {
     await connectToDB();
@@ -82,3 +44,4 @@ const startServer = async (): Promise<void> => {
 };
 
 startServer();
+

@@ -2,7 +2,7 @@ import Message from "@/models/message";
 import User from "@/models/user";
 import { Response } from "express";
 import { ExpressRequest } from "@/middleware/auth";
-import cloudinary from "@/lib/cloudinary";
+import cloudinary from "@/config/cloudinary";
 import { Server } from "socket.io";
 
 
