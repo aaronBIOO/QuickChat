@@ -116,7 +116,7 @@ function Sidebar() {
             }}
             className={`
               group relative flex items-center gap-3 p-2 pl-4
-              rounded cursor-pointer max-sm:text-sm hover:bg-[#1F1D1D]/30 active:bg-[#1F1D1D]/50 
+              rounded cursor-pointer max-sm:text-sm hover:bg-gray-100/5 active:bg-gray-100/9 
               ${selectedUser?._id === user._id}
             `}>
             <img 

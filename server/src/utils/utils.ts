@@ -4,12 +4,12 @@ export const generateToken = (userId: string) => {
   const token = jwt.sign(
     { userId }, 
     process.env.JWT_SECRET,
-    { expiresIn: "14d" }
+    { expiresIn: "7d" }
   );
   return token;
 }
 
-// helper to remove sensitive data before sending a user object to the client
+// data sanitization
 export const sanitizeUser = (user: any) => ({
   _id: user._id?.toString(),
   email: user.email,
