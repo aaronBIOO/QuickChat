@@ -1,22 +1,11 @@
 
 import jwt from "jsonwebtoken";
 import User from "@/models/user";
-import { NextFunction } from "express";
-import type { Request as ExpressRequest, Response } from "express";
-
-export { ExpressRequest };
-import { Document } from 'mongoose';
-
-declare global {
-  namespace Express {
-    interface Request {
-      user?: Document;
-    }
-  }
-}
+import { NextFunction, Response } from "express";
+import { AuthRequest } from "@/types/auth";
 
 // Middleware to protect routes
-export const protectRoute = async (req: ExpressRequest, res: Response, next: NextFunction) => {
+export const protectRoute = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.token as string;
 
@@ -30,7 +19,7 @@ export const protectRoute = async (req: ExpressRequest, res: Response, next: Nex
     // verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
 
-    const user = await User.findById(decoded.userId).select("-password");
+    const user = await User.findById(decoded.userId).select("-password").lean();
 
     if (!user) {
       return res.status(401).json({ 
@@ -39,7 +28,14 @@ export const protectRoute = async (req: ExpressRequest, res: Response, next: Nex
       });
     }
 
-    req.user = user;
+    // Convert to plain object and ensure _id is a string
+    req.user = {
+      _id: user._id.toString(),
+      email: user.email,
+      fullName: user.fullName,
+      bio: user.bio,
+      profilePic: user.profilePic
+    };
     next();
     
   } catch (error) {

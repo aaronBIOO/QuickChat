@@ -1,233 +1,110 @@
-import { Response } from "express";
-import { Request as ExpressRequest } from "express";
-import User from "@/models/user";
-import bcrypt from "bcryptjs";
-import { generateToken } from "@/utils/utils";
+import { Response, NextFunction } from "express";
+import { AuthRequest } from "@/types/auth";
+import {
+  signupUser,
+  loginUser,
+  updateUserProfile,
+  logoutUser,
+} from "@/services/userService";
 import { sanitizeUser } from "@/utils/utils";
-import cloudinary from "@/config/cloudinary"
-
-
-interface IUserInput {
-  email: string;
-  fullName: string;
-  password: string;
-  bio: string;
-  profilePic: string;
-}
-
-interface SignupBody {
-  email: string;
-  fullName: string;
-  password: string;
-  bio: string;
-}
-
-interface LoginBody {
-  email: string;
-  password: string;
-}
 
 
 // signup new user
-export const signup = async (req: ExpressRequest<{}, {}, SignupBody>, res: Response) => {
-  
-  const { email, fullName, password, bio } = req.body;
-
+export const signup = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    if (!email || !fullName || !password || !bio) {
-      return res.status(400).json({ success: false, message: "All fields are required" });
-    }
-
-    // checking for existing email
-    const user = await User.findOne({email})
-    if (user) {
-      return res.status(400).json({ success: false, message: "Account already exists" });
-    }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    
-    const userInput: IUserInput = {
-      email,
-      fullName,
-      password: hashedPassword,
-      bio,
-      profilePic: ""
-    };
-    
-    const newUser = await User.create(userInput);
-
-    const token = generateToken(newUser._id.toString());
+    const { token, user } = await signupUser(req.body);
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production" || process.env.NODE_ENV === "development",
-      sameSite: "strict", 
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    const userResponse = {
-      _id: newUser._id.toString(),
-      email: newUser.email,
-      fullName: newUser.fullName,
-      bio: newUser.bio,
-      profilePic: newUser.profilePic
-    };
-
-    return res.status(201).json({ 
-      success: true, 
-      user: userResponse,
-      message: "Account created successfully" 
+    res.status(201).json({
+      success: true,
+      user,
+      message: "Account created successfully",
     });
-    
-  } catch (error: unknown) {
-    console.error(error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create account';
-    return res.status(500).json({ 
-      success: false, 
-      message: errorMessage 
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: (error as Error).message,
     });
   }
-}
+};
 
 
 // login user
-export const login = async (req: ExpressRequest<{}, {}, LoginBody>, res: Response) => {
+export const login = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { email, password } = req.body;
-    const userData = await User.findOne({ email });
-    
-    if (!userData) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "User not found" 
-      });
-    }
-    
-    if (!userData.password) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid password" 
-      });
-    }
-    
-    const isPasswordCorrect = await bcrypt.compare(password, userData.password);
+    const { token, user } = await loginUser(req.body.email, req.body.password);
 
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Invalid credentials" 
-      });
-    }
-
-    const token = generateToken(userData._id.toString());
-    const safeUser = sanitizeUser(userData);
-
-    // Set JWT in httpOnly cookie
     res.cookie("token", token, {
-      httpOnly: true,     
-      secure: process.env.NODE_ENV === "production", 
-      sameSite: "strict", 
-      maxAge: 14 * 24 * 60 * 60 * 1000, 
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({
-      success: true, 
-      user: safeUser, 
-      message: "Login successful" 
-    });
-
-  } catch (error: unknown) {
-    console.error(error);
-    return res.status(500).json({
-      success: false, 
-      message: error instanceof Error ? error.message : 'Failed to login'
+    res.status(200).json({ success: true, user, message: "Login successful" });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: (error as Error).message,
     });
   }
-}
+};
 
 
 // check if user is authenticated
-export const checkAuth = async (req: ExpressRequest, res: Response) => {
-  res.json({
-    success: true, 
-    user: sanitizeUser(req.user) 
-  });
-}
-
-
-// update user profile 
-export const updateProfile = async (req: ExpressRequest, res: Response) => {
+export const checkAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.user) {
-    return res.status(401).json({ 
-      success: false, 
-      message: "User not authenticated" 
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated'
     });
   }
+  res.json({ success: true, user: sanitizeUser(req.user) });
+};
 
+
+// update user profile
+export const updateProfile = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { fullName, bio, profilePic } = req.body;
-    const userId = req.user._id as string;
-    
-    let updatedUser;
-
-    if (!profilePic) {
-      updatedUser = await User.findByIdAndUpdate(userId, {
-        fullName,
-        bio
-      }, {new: true});
-    } else {
-      try {
-        const upload = await cloudinary.uploader.upload(profilePic);
-
-        updatedUser = await User.findByIdAndUpdate(userId, {
-        
-        profilePic: upload.secure_url, 
-        fullName,
-        bio
-        }, {new: true});
-      } catch (error) {
-        console.error("Cloudinary upload failed:", error);
-        return res.status(500).json({ 
-          success: false, 
-          message: "Failed to upload profile picture" 
-        });
-      }
+    if (!req.user?._id) {
+      throw new Error('User not authenticated');
     }
+    
+    const userId = req.user._id.toString();
+    const updatedUser = await updateUserProfile(userId, req.body);
 
     res.json({
       success: true,
       user: updatedUser,
-      message: "Profile updated successfully"
+      message: "Profile updated successfully",
     });
-
-  } catch (error: unknown) {
-    console.error(error);
-    res.json({
-      success: false, 
-      message: error instanceof Error ? error.message : 'Failed to update profile'
-    })
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: (error as Error).message,
+    });
   }
-}
+};
 
 
 // logout user
-export const logout = async (req: ExpressRequest, res: Response) => {
+export const logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    res.cookie("token", "", { 
-      maxAge: 0, 
-      httpOnly: true 
-    });
-
-    return res.status(200).json({ 
-      success: true, 
-      message: "Logged out successfully" 
-    });
+    if (req.user?._id) {
+      await logoutUser();
+    }
+    res.cookie("token", "", { maxAge: 0, httpOnly: true });
+    res.status(200).json({ success: true, message: "Logged out successfully" });
   } catch (error) {
-    console.error("Error in logout controller:", error);
-    return res.status(500).json({ 
-      success: false, 
-      message: "Internal Server Error during logout" 
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error during logout",
     });
   }
 };
