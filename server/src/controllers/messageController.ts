@@ -61,12 +61,12 @@ export const sendUserMessage = async (req: AuthRequest, res: Response) => {
     const { text, image } = req.body;
     const newMessage = await sendMessage(senderId, receiverId, text, image);
 
-    // Emit new message in real time (Socket.IO)
+    // Emit new message in real time to receiver
     const receiverSocketId = userSocketMap[receiverId];
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
 
-      // Also emit to sender for real-time update
+      // Also emit to sender to update unseen message count
       const senderSocketId = userSocketMap[senderId];
       if (senderSocketId && senderSocketId !== receiverSocketId) {
         io.to(senderSocketId).emit("newMessage", newMessage);
