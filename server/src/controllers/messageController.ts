@@ -58,7 +58,8 @@ export const sendUserMessage = async (req: AuthRequest, res: Response) => {
     const senderId = req.user!._id;
     const receiverId = req.params.id;
 
-    const newMessage = await sendMessage(senderId, receiverId, req.body);
+    const { text, image } = req.body;
+    const newMessage = await sendMessage(senderId, receiverId, text, image);
 
     // Emit new message in real time (Socket.IO)
     const receiverSocketId = userSocketMap[receiverId];
