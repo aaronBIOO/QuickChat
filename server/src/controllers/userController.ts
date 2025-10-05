@@ -5,7 +5,7 @@ import {
   loginUser,
   updateUserProfile,
   logoutUser,
-} from "@/services/userService";
+} from "@/services/userServices";
 import { sanitizeUser } from "@/utils/utils";
 
 
