@@ -4,11 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/server.js",
-    "dev": "tsx watch -r dotenv/config -r tsconfig-paths/register src/server.ts",
-    "build": "tsc"
-  },
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "dev": "tsx watch -r dotenv/config src/server.ts",
+  "build": "tsc && tsc-alias",
+  "start": "node dist/server.js"
+},
   "type": "module",
   "keywords": [],
   "author": "",
@@ -31,6 +31,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.7.0",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3"
