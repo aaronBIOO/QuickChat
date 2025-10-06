@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
-import { login, signup, checkAuth, updateProfile, logout } from "@/controllers/userController";
-import { protectRoute } from "@/middleware/auth";
-import { AuthRequest } from "@/types/auth";
+import { login, signup, checkAuth, updateProfile, logout } from "@/controllers/userController.js";
+import { protectRoute } from "@/middleware/auth.js";
+import { AuthRequest } from "@/types/auth.js";
 
 const userRouter = express.Router();
 
