@@ -10,7 +10,8 @@
     "baseUrl": ".",           
     "paths": {
       "@/*": ["src/*"]    
-    }
+    },
+    "types": ["node", "express", "cors", "cookie-parser", "jsonwebtoken"]
   }
 }
 
