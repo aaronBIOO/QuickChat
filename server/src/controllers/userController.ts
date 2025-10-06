@@ -1,12 +1,12 @@
 import { Response, NextFunction } from "express";
-import { AuthRequest } from "@/types/auth.js";
+import { AuthRequest } from "@/types/auth";
 import {
   signupUser,
   loginUser,
   updateUserProfile,
   logoutUser,
-} from "@/services/userServices.js";
-import { sanitizeUser } from "@/utils/utils.js";
+} from "@/services/userServices";
+import { sanitizeUser } from "@/utils/utils";
 
 
 // signup new user
