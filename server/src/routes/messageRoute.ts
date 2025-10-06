@@ -1,11 +1,11 @@
 import express, { type RequestHandler } from "express";
-import { protectRoute } from "@/middleware/auth.js";
+import { protectRoute } from "@/middleware/auth";
 import {
   getUsers, 
   getUserMessages, 
   markAsSeen, 
   sendUserMessage 
-} from "@/controllers/messageController.js";
+} from "@/controllers/messageController";
 
 const messageRouter = express.Router();
 
