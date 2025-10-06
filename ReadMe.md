@@ -1,8 +1,8 @@
 # Chat App
 A chat application built with MongoDB, Express.js, React.js, and Node.js.
 
-## Project status
+### Project status
 Project under development
 
-## README status
+### README status
 soon to be updated
