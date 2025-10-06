@@ -1,10 +1,10 @@
 
 import jwt from "jsonwebtoken";
-import User from "@/models/user";
+import User from "@/models/user.js";
 import { NextFunction, Response } from "express";
-import { AuthRequest } from "@/types/auth";
+import { AuthRequest } from "@/types/auth.js";
 
-// Middleware to protect routes
+
 export const protectRoute = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.token as string;
@@ -16,7 +16,7 @@ export const protectRoute = async (req: AuthRequest, res: Response, next: NextFu
       });
     }
 
-    // verify token
+   
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
 
     const user = await User.findById(decoded.userId).select("-password").lean();
@@ -28,7 +28,7 @@ export const protectRoute = async (req: AuthRequest, res: Response, next: NextFu
       });
     }
 
-    // Convert to plain object and ensure _id is a string
+    
     req.user = {
       _id: user._id.toString(),
       email: user.email,

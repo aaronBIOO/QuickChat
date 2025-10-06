@@ -1,14 +1,14 @@
-import User from "@/models/user";
+import User from "@/models/user.js";
 import bcrypt from "bcryptjs";
-import cloudinary from "@/config/cloudinary";
-import { generateToken, sanitizeUser } from "@/utils/utils";
+import cloudinary from "@/config/cloudinary.js";
+import { generateToken, sanitizeUser } from "@/utils/utils.js";
 
 interface UserInput {
   email: string;
   fullName: string;
   password: string;
   bio: string;
-  profilePic?: string;
+  profilePic?: string;  
 }
 
 // signup new user
