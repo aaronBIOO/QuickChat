@@ -1,6 +1,6 @@
-import Message from "@/models/message.js";
-import User from "@/models/user.js";
-import cloudinary from "@/config/cloudinary.js";
+import Message from "@/models/message";
+import User from "@/models/user";
+import cloudinary from "@/config/cloudinary";
 
 
 // get all users except the logged-in user
