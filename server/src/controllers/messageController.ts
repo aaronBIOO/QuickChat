@@ -1,12 +1,12 @@
 import { Response } from "express";
-import { AuthRequest } from "@/types/auth";
+import { AuthRequest } from "@/types/auth.js";
 import {
   getUsersForSidebar,
   getMessages,
   markMessageAsSeen,
   sendMessage,
-} from "@/services/messageServices";
-import { io, userSocketMap } from "@/config/socket";
+} from "@/services/messageServices.js";
+import { io, userSocketMap } from "@/config/socket.js";
 
 
 
