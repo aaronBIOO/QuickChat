@@ -15,7 +15,7 @@ const server = http.createServer(app);
 
 setupSocket(server);
 
-// middleware is here
+// middleware
 app.use(express.json({ limit: "4mb" }));
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(cookieParser());
