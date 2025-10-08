@@ -7,6 +7,7 @@ import userRouter from "@/routes/userRoutes.js";
 import messageRouter from "@/routes/messageRoute.js";
 import cookieParser from "cookie-parser";
 import { setupSocket } from "@/config/socket.js";
+import healthChecksRouter from "@/routes/healthChecks.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(cookieParser());
 // routes
 app.use("/api/auth", userRouter);
 app.use("/api/messages", messageRouter);
+app.use("/api/health", healthChecksRouter);
 app.get("/", (req: Request, res: Response): void => {
   res.send("server is live");
 });
