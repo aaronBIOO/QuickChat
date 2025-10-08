@@ -39,11 +39,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
     checkAuth();
-  }, []);
+  
+    return () => {
+      socket?.disconnect();
+      console.log("Socket disconnected on unmount or auth change");
+    };
+  }, [authUser]);
 
-  // check if user is authenticated and if so, set user data and connect socket
+
+  // user authentication check
   const checkAuth = async (): Promise<void> => {
     try {
       const { data } = await axios.get("/api/auth/check");
@@ -56,7 +63,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } catch (error: unknown) {
       setAuthUser(null);
 
-      if (axios.isAxiosError(error) && error.response?.data.message === "Session expired. Please log in again.") {
+      if (axios.isAxiosError(error) 
+        && error.response?.data.message === "Session expired. Please log in again.") {
         await logout();
         toast.error("Session expired. Please log in again.");
         return;
@@ -70,7 +78,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
 
-  // login function to handle user authentication and socket connection
+  // login 
   const login = async (state: string, credentials: { email: string; password: string }) => {
     try {
       const { data } = await axios.post(`/api/auth/${state}`, credentials);
@@ -89,7 +97,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
 
-  // logout function to handle user logout and socket disconnection
+  // logout 
   const logout = async () => {
     try {
       await axios.post('/api/auth/logout');
@@ -106,7 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
  
-  // update profile function to handle user profile update
+  // update profile 
   const updateProfile = async (body: { fullName?: string; bio?: string; profilePic?: string }) => {
     try {
       const { data } = await axios.put("/api/auth/update-profile", body);
@@ -122,20 +130,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   
-  // connect socket function to handle socket connection and online users updates
+  // connect socket 
   const connectSocket = (userData: AuthUser | null) => {
     if (!userData || socket?.connected) return;
-    const newSocket = io(backendUrl, {
-      query: {
-        userId: userData._id,
-      }
-    });
-    newSocket.connect();
-    setSocket(newSocket);
+    
+    const token = localStorage.getItem("token") || "";
 
+    const newSocket = io(backendUrl, {
+      auth: { token },
+      withCredentials: true,
+      transports: ["websocket"], 
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+  
+    newSocket.on("authError", (error) => {
+      console.error("Socket Auth Error:", error);
+    });
+    
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+    });
+  
     newSocket.on("getOnlineUsers", (userIds: string[]) => {
       setOnlineUsers(userIds);
     });
+  
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error.message);
+    });
+    
+    newSocket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+    });
+  
+    setSocket(newSocket);
   }
 
 

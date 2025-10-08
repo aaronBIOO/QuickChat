@@ -1,21 +1,32 @@
 import { Server, Socket } from "socket.io";
+import jwt from 'jsonwebtoken';
 import http from "http";
 
+interface AuthSocket extends Socket {
+  userId?: string;
+}
 
-export const userSocketMap: Record<string, string> = {};
+
+export const userSocketMap: Record<string, Set<string>> = {};
 export let io: Server;
 
-function socketAuthMiddleware(socket: Socket, next: (err?: Error) => void) {
-  const userId = socket.handshake.query.userId as string | undefined;
+const socketAuthMiddleware = (socket: AuthSocket, next: (err?: Error) => void) => {
+  try {
+    const { token } = socket.handshake.auth || {};
+    if (!token) {
+      console.error("Socket Auth Failure: Missing or empty token.");
+      socket.emit("authError", "Authentication required");
+      return next(new Error("Authentication required"));
+    }
 
-  if (!userId) {
-    const err = new Error("Authentication required.");
-    console.error("Socket Auth Failure: Missing User ID.");
-    return next(err);
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    socket.userId = payload.id;
+
+    next();
+  } catch (error) {
+    console.error("Socket Auth Error:", (error as Error).message);
+    next(new Error("Invalid or expired token"));
   }
-
-  (socket as any).userId = userId;
-  next();
 }
 
 export function setupSocket(server: http.Server) {
@@ -30,22 +41,31 @@ export function setupSocket(server: http.Server) {
 
   io.use(socketAuthMiddleware);
 
-  io.on("connection", (socket) => {
-    const userId = (socket as any).userId;
+  io.on("connection", (socket: AuthSocket) => {
+    const userId = socket.userId || "";
     console.log(`User connected: ${userId}`);
 
-    userSocketMap[userId] = socket.id;
+    if (!userSocketMap[userId]) {
+      userSocketMap[userId] = new Set();
+    }
+    userSocketMap[userId].add(socket.id);
+    
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+    socket.on("error", (err) => {
+      console.error(`Socket Error for User: ${userId}. Error: ${err.message}`);
+    });
 
     socket.on("disconnect", (reason) => {
       console.log(`User disconnected: ${userId}. Reason: ${reason}`);
       
-      delete userSocketMap[userId];
+      if (userSocketMap[userId]) {
+        userSocketMap[userId].delete(socket.id);
+        if (userSocketMap[userId].size === 0) {
+          delete userSocketMap[userId];
+        }
+      }
       io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-      socket.on("error", (err) => {
-        console.error(`Socket Error for User: ${userId}. Error: ${err.message}`);
-      });
     });
   });
 
