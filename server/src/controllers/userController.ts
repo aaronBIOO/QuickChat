@@ -1,6 +1,7 @@
 import { Response, NextFunction } from "express";
 import { AuthRequest } from "@/types/auth.js";
 import { sanitizeUser } from "@/utils/utils.js";
+import { generateAccessToken } from "@/utils/utils.js";
 import {
   signupUser,
   loginUser,
@@ -12,9 +13,9 @@ import {
 // signup new user
 export const signup = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { token, user } = await signupUser(req.body);
+    const { accessToken, refreshToken, user } = await signupUser(req.body);
 
-    res.cookie("token", token, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -24,6 +25,7 @@ export const signup = async (req: AuthRequest, res: Response, next: NextFunction
     res.status(201).json({
       success: true,
       user,
+      accessToken,
       message: "Account created successfully",
     });
   } catch (error) {
@@ -38,16 +40,21 @@ export const signup = async (req: AuthRequest, res: Response, next: NextFunction
 // login user
 export const login = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { token, user } = await loginUser(req.body.email, req.body.password);
+    const { accessToken, refreshToken, user } = await loginUser(req.body.email, req.body.password);
 
-    res.cookie("token", token, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ success: true, user, message: "Login successful" });
+    res.status(200).json({ 
+      success: true, 
+      user, 
+      accessToken,
+      message: "Login successful" 
+    });
   } catch (error) {
     res.status(400).json({
       success: false,
@@ -59,13 +66,28 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
 
 // check if user is authenticated
 export const checkAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "Not authenticated"
+      });
+    }
+
+    // fresh access token
+    const accessToken = generateAccessToken(req.user._id.toString());
+
+    res.json({
+      success: true,
+      user: sanitizeUser(req.user),
+      accessToken, 
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: 'Not authenticated'
+      message: (error as Error).message,
     });
   }
-  res.json({ success: true, user: sanitizeUser(req.user) });
 };
 
 

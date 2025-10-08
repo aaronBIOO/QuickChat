@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import jwt from 'jsonwebtoken';
 import http from "http";
-import cookie from "cookie";
+import { corsConfig } from "./cors.js";
 
 interface AuthSocket extends Socket {
   userId?: string;
@@ -13,8 +13,7 @@ export let io: Server;
 
 const socketAuthMiddleware = (socket: AuthSocket, next: (err?: Error) => void) => {
   try {
-    const rawCookies = socket.handshake.headers?.cookie;
-    const { token } = rawCookies ? cookie.parse(rawCookies) : {};
+    const { token } = socket.handshake.auth;
 
     
     if (!token) {
@@ -33,10 +32,7 @@ const socketAuthMiddleware = (socket: AuthSocket, next: (err?: Error) => void) =
 
 export function setupSocket(server: http.Server) {
   io = new Server(server, {
-    cors: {
-      origin: process.env.FRONTEND_URL,
-      credentials: true,
-    },
+    cors: corsConfig,
     pingInterval: 10000,
     pingTimeout: 5000,
   });

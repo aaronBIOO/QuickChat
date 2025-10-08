@@ -8,6 +8,9 @@ import messageRouter from "@/routes/messageRoute.js";
 import cookieParser from "cookie-parser";
 import { setupSocket } from "@/config/socket.js";
 import healthChecksRouter from "@/routes/healthChecks.js";
+import authRouter from "@/routes/authRoute.js";
+import { corsConfig } from "@/config/cors.js";
+
 
 dotenv.config();
 
@@ -17,13 +20,15 @@ const server = http.createServer(app);
 setupSocket(server);
 
 // middleware
-app.use(express.json({ limit: "4mb" }));
-app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.use(cors(corsConfig));
 app.use(cookieParser());
+app.use(express.json({ limit: "4mb" }));
+
 
 
 // routes
-app.use("/api/auth", userRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/auth/user", userRouter);
 app.use("/api/messages", messageRouter);
 app.use("/api/health", healthChecksRouter);
 app.get("/", (req: Request, res: Response): void => {

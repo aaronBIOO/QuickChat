@@ -1,7 +1,7 @@
 import User from "@/models/user.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "@/config/cloudinary.js";
-import { generateToken, sanitizeUser } from "@/utils/utils.js";
+import { generateAccessToken, generateRefreshToken, sanitizeUser } from "@/utils/utils.js";
 
 interface UserInput {
   email: string;
@@ -31,10 +31,11 @@ export const signupUser = async (data: UserInput) => {
     profilePic: "",
   });
 
-  const token = generateToken(newUser._id.toString());
+  const accessToken = generateAccessToken(newUser._id.toString());
+  const refreshToken = generateRefreshToken(newUser._id.toString());
   const safeUser = sanitizeUser(newUser);
 
-  return { token, user: safeUser };
+  return { accessToken, refreshToken, user: safeUser };
 };
 
 
@@ -46,10 +47,11 @@ export const loginUser = async (email: string, password: string) => {
   const isPasswordCorrect = await bcrypt.compare(password, user.password);
   if (!isPasswordCorrect) throw new Error("Invalid credentials");
 
-  const token = generateToken(user._id.toString());
+  const accessToken = generateAccessToken(user._id.toString());
+  const refreshToken = generateRefreshToken(user._id.toString());
   const safeUser = sanitizeUser(user);
 
-  return { token, user: safeUser };
+  return { accessToken, refreshToken, user: safeUser };
 };
 
 
