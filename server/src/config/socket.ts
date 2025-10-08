@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import jwt from 'jsonwebtoken';
 import http from "http";
+import cookie from "cookie";
 
 interface AuthSocket extends Socket {
   userId?: string;
@@ -12,15 +13,16 @@ export let io: Server;
 
 const socketAuthMiddleware = (socket: AuthSocket, next: (err?: Error) => void) => {
   try {
-    const { token } = socket.handshake.auth || {};
+    const rawCookies = socket.handshake.headers?.cookie;
+    const { token } = rawCookies ? cookie.parse(rawCookies) : {};
+
+    
     if (!token) {
-      console.error("Socket Auth Failure: Missing or empty token.");
-      socket.emit("authError", "Authentication required");
-      return next(new Error("Authentication required"));
+      return next(new Error("Authentication required — missing token"));
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-    socket.userId = payload.id;
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    socket.userId = payload.userId;
 
     next();
   } catch (error) {

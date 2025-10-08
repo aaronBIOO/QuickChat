@@ -133,11 +133,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // connect socket 
   const connectSocket = (userData: AuthUser | null) => {
     if (!userData || socket?.connected) return;
-    
-    const token = localStorage.getItem("token") || "";
 
     const newSocket = io(backendUrl, {
-      auth: { token },
       withCredentials: true,
       transports: ["websocket"], 
       reconnection: true,
@@ -145,8 +142,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       reconnectionDelay: 1000,
     });
   
-    newSocket.on("authError", (error) => {
-      console.error("Socket Auth Error:", error);
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
     });
     
     newSocket.on("connect", () => {
@@ -155,10 +152,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
     newSocket.on("getOnlineUsers", (userIds: string[]) => {
       setOnlineUsers(userIds);
-    });
-  
-    newSocket.on("connect_error", (error) => {
-      console.error("Socket connection error:", error.message);
     });
     
     newSocket.on("disconnect", (reason) => {
