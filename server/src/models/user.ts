@@ -6,12 +6,14 @@ export interface IUser extends Document {
   password: string;
   profilePic: string;
   bio: string;
+  clerkId: string;
   _id: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const userSchema = new mongoose.Schema<IUser>({
+  clerkId: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   fullName: { type: String, required: true },
   password: { type: String, required: true, minlength: 6 },

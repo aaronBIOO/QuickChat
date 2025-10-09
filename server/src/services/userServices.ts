@@ -1,7 +1,7 @@
 import User from "@/models/user.js";
 import bcrypt from "bcryptjs";
 import cloudinary from "@/config/cloudinary.js";
-import { generateAccessToken, generateRefreshToken, sanitizeUser } from "@/utils/utils.js";
+import { sanitizeUser } from "@/lib/utils.js";
 
 interface UserInput {
   email: string;
@@ -11,48 +11,6 @@ interface UserInput {
   profilePic?: string;  
 }
 
-// signup new user
-export const signupUser = async (data: UserInput) => {
-  const { email, fullName, password, bio } = data;
-
-  if (!email || !fullName || !password || !bio) {
-    throw new Error("All fields are required");
-  }
-
-  const existingUser = await User.findOne({ email });
-  if (existingUser) throw new Error("Account already exists");
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = await User.create({
-    email,
-    fullName,
-    password: hashedPassword,
-    bio,
-    profilePic: "",
-  });
-
-  const accessToken = generateAccessToken(newUser._id.toString());
-  const refreshToken = generateRefreshToken(newUser._id.toString());
-  const safeUser = sanitizeUser(newUser);
-
-  return { accessToken, refreshToken, user: safeUser };
-};
-
-
-// login user
-export const loginUser = async (email: string, password: string) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new Error("User not found");
-
-  const isPasswordCorrect = await bcrypt.compare(password, user.password);
-  if (!isPasswordCorrect) throw new Error("Invalid credentials");
-
-  const accessToken = generateAccessToken(user._id.toString());
-  const refreshToken = generateRefreshToken(user._id.toString());
-  const safeUser = sanitizeUser(user);
-
-  return { accessToken, refreshToken, user: safeUser };
-};
 
 
 // update user profile

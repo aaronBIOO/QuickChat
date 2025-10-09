@@ -1,8 +1,13 @@
 import express from "express";
-import { refreshToken } from "@/controllers/authController.js";
+import { updateProfile, logout } from "@/controllers/userController.js";
+import { clerkMiddleware } from "@clerk/express"; 
+import { attachClerkUser } from "@/middleware/clerkAuthMiddleware.js"; 
 
-const authRouter = express.Router();
+const userRouter = express.Router();
 
-authRouter.post("/refresh-token", refreshToken);
+userRouter.use(clerkMiddleware(), attachClerkUser); 
+userRouter.put("/update-profile", updateProfile);
+userRouter.post("/logout", logout);
+ 
 
-export default authRouter;
+export default userRouter;

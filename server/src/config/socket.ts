@@ -1,27 +1,66 @@
 import { Server, Socket } from "socket.io";
-import jwt from 'jsonwebtoken';
+import jwt, { Secret, JwtHeader } from "jsonwebtoken";
+import jwksClient from "jwks-rsa"
 import http from "http";
-import { corsConfig } from "./cors.js";
+import { corsConfig } from "@/config/cors.js";
 
 interface AuthSocket extends Socket {
   userId?: string;
 }
 
+const CLERK_JWKS_URL = process.env.CLERK_JWKS_URL;
+
+const client = jwksClient({
+  jwksUri: CLERK_JWKS_URL!,
+  cache: true,
+  rateLimit: true,
+  jwksRequestsPerMinute: 5,
+})
+
+const getKey = (header: JwtHeader, callback: (err: Error | null, key?: Secret) => void) => {
+  if (!header.kid) {
+    return callback(new Error("Token header is missing 'kid' (Key ID)."));
+  }
+
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) {
+      return callback(err);
+    }
+    
+    const signingKey = key?.getPublicKey() as Secret; 
+    callback(null, signingKey);
+  });
+}
 
 export const userSocketMap: Record<string, Set<string>> = {};
 export let io: Server;
 
-const socketAuthMiddleware = (socket: AuthSocket, next: (err?: Error) => void) => {
+const socketAuthMiddleware = async (socket: AuthSocket, next: (err?: Error) => void) => {
   try {
     const { token } = socket.handshake.auth;
+    const issuer = process.env.CLERK_JWT_ISSUER;
+    const audience = process.env.CLERK_JWT_AUDIENCE;
 
-    
-    if (!token) {
+    if (!token || !issuer || !audience) {
       return next(new Error("Authentication required — missing token"));
     }
 
-    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    socket.userId = payload.userId;
+    const payload = await new Promise((resolve, reject) => {
+      jwt.verify( token, getKey, 
+        {
+          issuer: issuer, 
+          audience: audience,
+        }, 
+        (err, decoded) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(decoded as { sub: string } & jwt.JwtPayload);
+        }
+      );
+    }) as { sub: string };
+
+    socket.userId = payload.sub;
 
     next();
   } catch (error) {
@@ -35,6 +74,10 @@ export function setupSocket(server: http.Server) {
     cors: corsConfig,
     pingInterval: 10000,
     pingTimeout: 5000,
+    allowRequest: (req, callback) => {
+      const isReady = !!process.env.CLERK_JWKS_URL && !!process.env.CLERK_JWT_ISSUER;
+      callback(null, isReady);
+    },
   });
 
   io.use(socketAuthMiddleware);
