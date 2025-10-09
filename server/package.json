@@ -14,7 +14,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/express": "^1.7.37",
     "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
     "cloudinary": "^2.7.0",
     "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
@@ -22,8 +24,10 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0",
     "mongoose": "^8.18.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "svix": "^1.76.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
