@@ -14,4 +14,6 @@ declare global {
   }
 }
 
+/// <reference types="@clerk/express/env" />
+
 export {};

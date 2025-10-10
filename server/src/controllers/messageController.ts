@@ -1,5 +1,6 @@
 import { Response } from "express";
-import { AuthRequest } from "@/types/auth.js";
+import { getAuth } from "@clerk/express";
+import User from "@/models/user.js";
 import {
   getUsersForSidebar,
   getMessages,
@@ -9,11 +10,24 @@ import {
 import { io, userSocketMap } from "@/config/socket.js";
 
 
+// Helper to get the Mongo user and clerkId from Clerk auth
+async function getCurrentUser(req: any) {
+  const { userId: clerkId } = getAuth(req);
+  if (!clerkId) throw new Error("Unauthorized");
 
-// get all users except the logged-in user
-export const getUsers = async (req: AuthRequest, res: Response) => {
+  const user = await User.findOne({ clerkId });
+  if (!user) throw new Error("User not found");
+
+  return { user, clerkId };
+}
+
+
+//  Get all users except the logged-in user 
+export const getUsers = async (req: any, res: Response) => {
   try {
-    const { users, unseenMessages } = await getUsersForSidebar(req.user!._id);
+    const { clerkId } = await getCurrentUser(req);
+    const { users, unseenMessages } = await getUsersForSidebar(clerkId);
+
     res.json({ success: true, users, unseenMessages });
   } catch (error) {
     res.status(400).json({
@@ -24,10 +38,12 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
 };
 
 
-// get all messages between current user and selected user
-export const getUserMessages = async (req: AuthRequest, res: Response) => {
+// Get messages between current user and selected user 
+export const getUserMessages = async (req: any, res: Response) => {
   try {
-    const messages = await getMessages(req.user!._id, req.params.id);
+    const { clerkId } = await getCurrentUser(req);
+    const messages = await getMessages(clerkId, req.params.id);
+
     res.json({ success: true, messages });
   } catch (error) {
     res.status(400).json({
@@ -38,10 +54,12 @@ export const getUserMessages = async (req: AuthRequest, res: Response) => {
 };
 
 
-// mark message as seen
-export const markAsSeen = async (req: AuthRequest, res: Response) => {
+// Mark message as seen 
+export const markAsSeen = async (req: any, res: Response) => {
   try {
+    await getCurrentUser(req); 
     await markMessageAsSeen(req.params.id);
+
     res.json({ success: true, message: "Message marked as seen" });
   } catch (error) {
     res.status(400).json({
@@ -52,24 +70,32 @@ export const markAsSeen = async (req: AuthRequest, res: Response) => {
 };
 
 
-// send a message or image
-export const sendUserMessage = async (req: AuthRequest, res: Response) => {
+// Send a message 
+export const sendUserMessage = async (req: any, res: Response) => {
   try {
-    const senderId = req.user!._id;
-    const receiverId = req.params.id;
-
+    const { clerkId: senderClerkId } = await getCurrentUser(req);
+    const receiverClerkId = req.params.id;
     const { text, image } = req.body;
-    const newMessage = await sendMessage(senderId, receiverId, text, image);
 
-    // Emit new message in real time to receiver
-    const receiverSocketId = userSocketMap[receiverId];
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+    const newMessage = await sendMessage(senderClerkId, receiverClerkId, text, image);
 
-      // Also emit to sender to update unseen message count
-      const senderSocketId = userSocketMap[senderId];
-      if (senderSocketId && senderSocketId !== receiverSocketId) {
-        io.to(senderSocketId).emit("newMessage", newMessage);
+    // Emit new message in real-time
+    const receiverSockets = userSocketMap[receiverClerkId];
+    if (receiverSockets) {
+      // Emit to all of the receiver's sockets
+      receiverSockets.forEach(socketId => {
+        io.to(socketId).emit("newMessage", newMessage);
+      });
+
+      // Update sender as well if not the same socket
+      const senderSockets = userSocketMap[senderClerkId];
+      if (senderSockets) {
+        senderSockets.forEach(socketId => {
+          // Only emit to sender's other sockets
+          if (!receiverSockets.has(socketId)) {
+            io.to(socketId).emit("newMessage", newMessage);
+          }
+        });
       }
     }
 

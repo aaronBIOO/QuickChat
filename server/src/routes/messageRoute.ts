@@ -1,17 +1,17 @@
-import express, { type RequestHandler } from "express";
-import { protectRoute } from "@/middleware/auth.js";
+import express from 'express'
+import { requireAuth } from '@clerk/express'
 import {
-  getUsers, 
-  getUserMessages, 
-  markAsSeen, 
-  sendUserMessage 
-} from "@/controllers/messageController.js";
+  getUsers,
+  getUserMessages,
+  markAsSeen,
+  sendUserMessage,
+} from '@/controllers/messageController.js'
 
-const messageRouter = express.Router();
+const messageRouter = express.Router()
 
-messageRouter.get("/users", protectRoute, getUsers);
-messageRouter.get("/users/:id", protectRoute, getUserMessages);
-messageRouter.put("/mark/:id", protectRoute, markAsSeen);
-messageRouter.post("/send/:id", protectRoute, sendUserMessage);
+messageRouter.get('/users', requireAuth(), getUsers)
+messageRouter.get('/users/:id', requireAuth(), getUserMessages)
+messageRouter.put('/mark/:id', requireAuth(), markAsSeen)
+messageRouter.post('/send/:id', requireAuth(), sendUserMessage)
 
-export default messageRouter;
+export default messageRouter
