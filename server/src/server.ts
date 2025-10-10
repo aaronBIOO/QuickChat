@@ -6,34 +6,38 @@ import { connectToDB } from "@/config/db.js";
 import userRouter from "@/routes/userRoutes.js";
 import messageRouter from "@/routes/messageRoute.js";
 import cookieParser from "cookie-parser";
+import { clerkMiddleware } from '@clerk/express'
 import { setupSocket } from "@/config/socket.js";
-import healthChecksRouter from "@/routes/healthChecks.js";
-import authRouter from "@/routes/authRoute.js";
+import authRouter from "@/routes/authRouter.js";
 import { corsConfig } from "@/config/cors.js";
-
+import webhookRoutes from "@/routes/webhookRoute.js";
 
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app);
 
-setupSocket(server);
+// Webhook routes
+app.use("/api/webhooks", webhookRoutes);
+
 
 // middleware
 app.use(cors(corsConfig));
 app.use(cookieParser());
 app.use(express.json({ limit: "4mb" }));
+app.use(clerkMiddleware());
 
 
-// routes
+// API routes
 app.use("/api/auth", authRouter);
 app.use("/api/auth/user", userRouter);
 app.use("/api/messages", messageRouter);
-app.use("/api/health", healthChecksRouter);
 app.get("/", (req: Request, res: Response): void => {
   res.send("server is live");
 });
 
+
+const server = http.createServer(app);
+setupSocket(server);
 
 const startServer = async (): Promise<void> => {
   try {
