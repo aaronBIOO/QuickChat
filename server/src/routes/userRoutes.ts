@@ -1,19 +1,14 @@
-import express, { Request, Response, NextFunction } from "express";
+import express from "express";
 import {  updateProfile, logout } from "@/controllers/userController.js";
-import { protectRoute } from "@/middleware/auth.js";
-import { AuthRequest } from "@/types/auth.js";
+import { clerkMiddleware } from "@clerk/express";
+import { attachClerkUser } from "@/middleware/clerkMiddleware.js";
+import { syncUser } from "@/controllers/userController.js";
 
 const userRouter = express.Router();
 
-const handleRequest = (handler: (req: AuthRequest, res: Response, next: NextFunction
-  ) => Promise<any>) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    return handler(req as AuthRequest, res, next);
-  };
-};
-
-userRouter.post("/logout", protectRoute, handleRequest(logout));
-userRouter.put("/update-profile", protectRoute, handleRequest(updateProfile));
-
+userRouter.use(clerkMiddleware(), attachClerkUser);
+userRouter.get("/sync", syncUser); 
+userRouter.put("/update-profile", updateProfile);
+userRouter.post("/logout", logout);
 
 export default userRouter;
