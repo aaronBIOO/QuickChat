@@ -134,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const syncUserAndConnect = async () => {
       try {
-        const { data } = await apiClient.get('/api/sync');
+        const { data } = await apiClient.get('/api/user/sync');
         
         if (data.success) {
           setAuthUser(data.user);

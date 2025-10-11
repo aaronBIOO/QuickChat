@@ -12,6 +12,7 @@ import type {
   ChatContextType 
 } from "@/types/chat.types";
 
+
 export const ChatContextProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,12 +20,13 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [unseenMessage, setUnseenMessage] = useState<UnseenMessages>({});
 
-  const { socket, axios, authUser } = useContext(AuthContext) as {
+  const { socket, apiClient, authUser } = useContext(AuthContext) as {
     socket: {
       on: (event: 'newMessage', callback: (data: Message) => void) => void;
       off: (event: 'newMessage', callback?: (data: Message) => void) => void;
     } | null;
-    axios: {
+
+    apiClient: {
       get: <T>(url: string) => Promise<{ data: T & { success: boolean; message?: string } }>;
       post: <T>(url: string, data?: MessageData) => Promise<{ data: T & { success: boolean; message?: string } }>;
       put: <T>(url: string, data?: SeenMessageData) => Promise<{ data: T & { success: boolean; message?: string } }>;
@@ -39,7 +41,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
     if (!authUser) return;
 
     try {
-      const { data } = await axios.get<{ users: User[]; unseenMessages: Record<string, number> }>('/api/messages/users');
+      const { data } = await apiClient.get<{ users: User[]; unseenMessages: Record<string, number> }>('/api/messages/users');
       console.log("getUsers response", data);
       if (!data?.success) {
         throw new Error(data?.message || 'Unexpected error fetching users');
@@ -59,7 +61,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
       toast.error('Error fetching users');
       console.error('Error fetching users:', error);
     }
-  }, [axios, authUser, setUsers, setUnseenMessage]);
+  }, [apiClient, authUser, setUsers, setUnseenMessage]);
 
   useEffect(() => {
     if (authUser) {
@@ -80,7 +82,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
     if (!authUser) return;
 
     try {
-      const { data } = await axios.get<{ messages: Message[] }>(`/api/messages/users/${userId}`);
+      const { data } = await apiClient.get<{ messages: Message[] }>(`/api/messages/users/${userId}`);
       if (!data?.success) {
         throw new Error(data?.message || 'Unexpected error fetching messages');
       }
@@ -92,7 +94,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
       toast.error('Error fetching messages');
       console.error('Error fetching messages:', error);
     }
-  }, [axios, authUser, setMessages]);
+  }, [apiClient, authUser, setMessages]);
   
 
   // send message to selected user
@@ -108,7 +110,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
     }
     
     try {
-      const { data } = await axios.post<{ newMessage: Message }>(`/api/messages/send/${selectedUser?._id}`, messageData);
+      const { data } = await apiClient.post<{ newMessage: Message }>(`/api/messages/send/${selectedUser?._id}`, messageData);
       if (!data?.success) {
         throw new Error(data?.message || 'Unexpected error sending message');
       }
@@ -126,21 +128,21 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
       toast.error(errorMessage);
       console.error('Error sending message:', error);
     }
-  }, [axios, authUser, selectedUser, setMessages]);
+  }, [apiClient, authUser, selectedUser, setMessages]);
 
   const markSeen = useCallback(async (id: string) => {
     
     if (!authUser) return;
 
     try {
-      const { data } = await axios.put(`/api/messages/mark/${id}`);
+      const { data } = await apiClient.put(`/api/messages/mark/${id}`);
       if (data.success) {
         setMessages(prev => prev.map(m => m._id === id ? { ...m, seen: true } : m));
       }
     } catch (err) {
       console.error('Error marking message seen:', err);
     }
-  }, [axios, authUser]);
+  }, [apiClient, authUser]);
 
 
   // function to subscribe to messages for selected user
