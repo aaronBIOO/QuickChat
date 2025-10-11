@@ -1,24 +1,26 @@
-import Message from "@/models/message.js";
-import User from "@/models/user.js";
+import Message from "@/models/message.model.js";
+import User from "@/models/user.model.js";
 import cloudinary from "@/config/cloudinary.js";
 
-
-// get all users except the logged-in user
-export const getUsersForSidebar = async (userId: string) => {
-  const filteredUsers = await User.find({ _id: { $ne: userId } })
+// Get all users except the logged-in user
+export const getUsersForSidebar = async (clerkId: string) => {
+  // Fetch all users except the current one
+  const filteredUsers = await User.find({ clerkId: { $ne: clerkId } })
     .select("-password")
     .lean();
 
-  // number of messages not seen
+  // Number of unseen messages
   const unseenMessages: { [key: string]: number } = {};
+
   const promises = filteredUsers.map(async (user) => {
     const messages = await Message.find({
-      senderId: userId,
-      receiverId: user._id.toString(),
+      senderId: user.clerkId,
+      receiverId: clerkId,
       seen: false,
     });
+
     if (messages.length > 0) {
-      unseenMessages[user._id.toString()] = messages.length;
+      unseenMessages[user.clerkId] = messages.length;
     }
   });
 
@@ -27,37 +29,34 @@ export const getUsersForSidebar = async (userId: string) => {
   return { users: filteredUsers, unseenMessages };
 };
 
-
-// get all messages between current user and selected user
-export const getMessages = async (myId: string, selectedUserId: string) => {
+// Get all messages between current user and selected user
+export const getMessages = async (myClerkId: string, selectedClerkId: string) => {
   const messages = await Message.find({
     $or: [
-      { senderId: myId, receiverId: selectedUserId },
-      { senderId: selectedUserId, receiverId: myId },
+      { senderId: myClerkId, receiverId: selectedClerkId },
+      { senderId: selectedClerkId, receiverId: myClerkId },
     ],
   });
 
-  // mark messages from selected user as seen
+  // Mark messages from selected user as seen
   await Message.updateMany(
-    { senderId: selectedUserId, receiverId: myId },
+    { senderId: selectedClerkId, receiverId: myClerkId },
     { seen: true }
   );
 
   return messages;
 };
 
-
-// mark a message as seen by ID
+// Mark a message as seen by ID
 export const markMessageAsSeen = async (messageId: string) => {
   await Message.findByIdAndUpdate(messageId, { seen: true });
   return { message: "Message marked as seen" };
 };
 
-
-// send a message or image
+// Send a message or image
 export const sendMessage = async (
-  senderId: string,
-  receiverId: string,
+  senderClerkId: string,
+  receiverClerkId: string,
   text: string,
   image?: string
 ) => {
@@ -69,8 +68,8 @@ export const sendMessage = async (
   }
 
   const newMessage = await Message.create({
-    senderId,
-    receiverId,
+    senderId: senderClerkId,
+    receiverId: receiverClerkId,
     text,
     image: imageUrl,
   });

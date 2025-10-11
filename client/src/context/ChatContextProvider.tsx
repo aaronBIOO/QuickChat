@@ -12,6 +12,7 @@ import type {
   ChatContextType 
 } from "@/types/chat.types";
 
+
 export const ChatContextProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,12 +20,13 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [unseenMessage, setUnseenMessage] = useState<UnseenMessages>({});
 
-  const { socket, axios, authUser } = useContext(AuthContext) as {
+  const { socket, apiClient, authUser } = useContext(AuthContext) as {
     socket: {
       on: (event: 'newMessage', callback: (data: Message) => void) => void;
       off: (event: 'newMessage', callback?: (data: Message) => void) => void;
     } | null;
-    axios: {
+
+    apiClient: {
       get: <T>(url: string) => Promise<{ data: T & { success: boolean; message?: string } }>;
       post: <T>(url: string, data?: MessageData) => Promise<{ data: T & { success: boolean; message?: string } }>;
       put: <T>(url: string, data?: SeenMessageData) => Promise<{ data: T & { success: boolean; message?: string } }>;
@@ -35,15 +37,22 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
 
   // get all users for sidebar
   const getUsers = useCallback(async () => {
+    
+    if (!authUser) return;
+
     try {
-      const { data } = await axios.get<{ users: User[]; unseenMessages: Record<string, number> }>('/api/messages/users');
+      const { data } = await apiClient.get<{ users: User[]; unseenMessages: Record<string, number> }>('/api/messages/users');
       console.log("getUsers response", data);
-      if (data.success && data.users) {
+      if (!data?.success) {
+        throw new Error(data?.message || 'Unexpected error fetching users');
+      }
+
+      if (data.users) {
         setUsers(data.users);
         console.log("Users stored in state:", data.users);
       }
 
-      if (data.success && data.unseenMessages) {
+      if (data.unseenMessages) {
         setUnseenMessage(data.unseenMessages);
         console.log("Unseen messages stored in state:", data.unseenMessages);
       }
@@ -52,27 +61,41 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
       toast.error('Error fetching users');
       console.error('Error fetching users:', error);
     }
-  }, [axios, setUsers, setUnseenMessage]);
+  }, [apiClient, authUser, setUsers, setUnseenMessage]);
 
   useEffect(() => {
-    getUsers();
+    if (authUser) {
+      getUsers();
+    }
+    if (!authUser) {
+      setUsers([]);
+      setMessages([]);
+      setSelectedUser(null);
+      setUnseenMessage({});
+    }
   }, [authUser, getUsers]);
 
 
   // get messages for selected user
   const getMessages = useCallback(async (userId: string) => {
+    
+    if (!authUser) return;
+
     try {
-      const { data } = await axios.get<{ messages: Message[] }>(`/api/messages/users/${userId}`);
-      if (data.success && data.messages) {
+      const { data } = await apiClient.get<{ messages: Message[] }>(`/api/messages/users/${userId}`);
+      if (!data?.success) {
+        throw new Error(data?.message || 'Unexpected error fetching messages');
+      }
+
+      if (data.messages) {
         setMessages(data.messages);
       }
     } catch (error) {
       toast.error('Error fetching messages');
       console.error('Error fetching messages:', error);
     }
-  }, [axios, setMessages]);
+  }, [apiClient, authUser, setMessages]);
   
-
 
   // send message to selected user
   const sendMessage = useCallback(async (messageData: MessageData) => {
@@ -80,9 +103,19 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
       toast.error('No user selected');
       return;
     }
+    
+    if (!authUser) {
+      toast.error('You must be logged in to send a message');
+      return;
+    }
+    
     try {
-      const { data } = await axios.post<{ newMessage: Message }>(`/api/messages/send/${selectedUser?._id}`, messageData);
-      if (data.success && data.newMessage) {
+      const { data } = await apiClient.post<{ newMessage: Message }>(`/api/messages/send/${selectedUser?._id}`, messageData);
+      if (!data?.success) {
+        throw new Error(data?.message || 'Unexpected error sending message');
+      }
+
+      if (data.newMessage) {
         setMessages((prevMessages) => [...prevMessages, data.newMessage as Message]);
       } else {
         if (data.message) {
@@ -95,26 +128,39 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
       toast.error(errorMessage);
       console.error('Error sending message:', error);
     }
-  }, [axios, selectedUser, setMessages]);
+  }, [apiClient, authUser, selectedUser, setMessages]);
+
+  const markSeen = useCallback(async (id: string) => {
+    
+    if (!authUser) return;
+
+    try {
+      const { data } = await apiClient.put(`/api/messages/mark/${id}`);
+      if (data.success) {
+        setMessages(prev => prev.map(m => m._id === id ? { ...m, seen: true } : m));
+      }
+    } catch (err) {
+      console.error('Error marking message seen:', err);
+    }
+  }, [apiClient, authUser]);
 
 
   // function to subscribe to messages for selected user
   const subscribeToMessages = useCallback(() => {
-    if (!socket) return;
+    if (!socket || !authUser) return;
 
     socket.on("newMessage", (newMessage: Message) => {
       if (selectedUser && newMessage.senderId === selectedUser._id) {
-        newMessage.seen = true;
+        markSeen(newMessage._id);
         setMessages((prevMessages) => [...prevMessages, newMessage]);
-        axios.put(`/api/messages/mark/${newMessage._id}`);
       } else {
-        setUnseenMessage((prevUnseenMessages) => ({
-          ...prevUnseenMessages, [newMessage.senderId]:
-          prevUnseenMessages[newMessage.senderId] ? prevUnseenMessages[newMessage.senderId] + 1 : 1
+        setUnseenMessage(prev => ({
+          ...prev,
+          [newMessage.senderId]: (prev[newMessage.senderId] || 0) + 1
         }));
       }
     });
-  }, [axios, selectedUser, setMessages, setUnseenMessage, socket]);
+  }, [socket, selectedUser, markSeen, authUser]);
 
 
   // function to unsubscribe from messages
@@ -141,6 +187,7 @@ export const ChatContextProvider = ({ children }: { children: React.ReactNode })
     getUsers,
     getMessages,
     sendMessage,
+    markSeen,
     setSelectedUser,
     setUnseenMessage
   }

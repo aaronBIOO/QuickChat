@@ -54,8 +54,9 @@ export interface ChatContextType {
   selectedUser: User | null;
   unseenMessage: UnseenMessages;
   getUsers: () => Promise<void>;
-  getMessages: (userId: string) => Promise<void>;
-  sendMessage: (messageData: MessageData) => Promise<void>;
+  getMessages: (id: string) => Promise<void>;
+  sendMessage: (message: MessageData) => Promise<void>;
+  markSeen: (id: string) => Promise<void>;
   setSelectedUser: (user: User | null) => void;
-  setUnseenMessage: (unseenMessages: UnseenMessages | ((prev: UnseenMessages) => UnseenMessages)) => void;
+  setUnseenMessage: React.Dispatch<React.SetStateAction<UnseenMessages>>;
 }

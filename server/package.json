@@ -4,30 +4,36 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "test": "echo \"Error: no test specified\" && exit 1",
-  "dev": "tsx watch -r dotenv/config src/server.ts",
-  "build": "rm -rf dist && tsc && tsc-alias",
-  "start": "node dist/server.js"
-},
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch -r dotenv/config src/server.ts",
+    "build": "rm -rf dist && tsc && tsc-alias",
+    "start": "node dist/server.js"
+  },
   "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/express": "^1.7.37",
     "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
     "cloudinary": "^2.7.0",
+    "cookie": "^1.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.2.0",
     "mongoose": "^8.18.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "svix": "^1.76.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/express-serve-static-core": "^5.1.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.7.0",
     "ts-node": "^10.9.2",

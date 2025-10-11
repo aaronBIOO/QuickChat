@@ -1,9 +1,9 @@
-import { createContext, useEffect, useState } from "react";
-import type { ReactNode } from "react";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { Socket, io } from "socket.io-client";
-
+import { createContext, useEffect, useState, useMemo, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import toast from 'react-hot-toast';
+import { Socket, io } from 'socket.io-client';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
+import apiClient from '@/lib/apiClient';
 
 interface AuthUser {
   _id: string;
@@ -14,142 +14,155 @@ interface AuthUser {
 }
 
 export interface AuthContextType {
-  axios: typeof axios;
+  apiClient: typeof apiClient;
   authUser: AuthUser | null;
   onlineUsers: string[];
   socket: Socket | null;
   loading: boolean;
-  login: (state: 'login' | 'signup', credentials: { email: string; password: string }) => Promise<void>;
-  logout: () => Promise<void>;
   updateProfile: (body: { fullName?: string; bio?: string; profilePic?: string }) => Promise<void>;
-  checkAuth: () => Promise<void>;
 }
 
-const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-axios.defaults.baseURL = backendUrl;
-axios.defaults.withCredentials = true;
+const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 const AuthContext = createContext<AuthContextType | null>(null);
-export { AuthContext };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-
+  const { isSignedIn, isLoaded } = useUser();
+  const { signOut } = useClerk();
+  const { getToken } = useAuth();
+  
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
 
+  
+  // Add token to all requests
   useEffect(() => {
-    checkAuth();
+    if (!isLoaded) return;
+
+    const requestInterceptor = apiClient.interceptors.request.use(
+      async (config) => {
+        const token = await getToken({ skipCache: true });
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      apiClient.interceptors.request.eject(requestInterceptor);
+    };
+  }, [isLoaded, getToken]);
+
+
+  // Connect socket and handle WebSocket events
+  const connectSocket = useCallback(async (userData: AuthUser | null) => {
+    if (!userData || socket?.connected) return;
+
+    try {
+      const newSocket = io(backendUrl, {
+        withCredentials: true,
+        transports: ['websocket'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
+
+      newSocket.on('connect_error', (err) => {
+        console.error('Socket connection error:', err.message);
+      });
+      
+      newSocket.on('connect', () => {
+        console.log('Socket connected:', newSocket.id);
+      });
+    
+      newSocket.on('getOnlineUsers', (userIds: string[]) => {
+        setOnlineUsers(userIds);
+      });
+      
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+      });
+
+      setSocket(newSocket);
+      return newSocket;
+    } catch (error) {
+      console.error('Failed to connect socket:', error);
+      return null;
+    }
+  }, [socket]);
+
+
+  // Update user profile
+  const updateProfile = useCallback(async (body: { fullName?: string; bio?: string; profilePic?: string }) => {
+    try {
+      const { data } = await apiClient.put('/api/user/update-profile', body);
+      if (data.success) {
+        setAuthUser(prev => ({
+          ...prev!,
+          ...body
+        }));
+        toast.success('Profile updated successfully');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      toast.error(errorMessage);
+      console.error('Update profile error:', error);
+    }
   }, []);
 
-  // check if user is authenticated and if so, set user data and connect socket
-  const checkAuth = async (): Promise<void> => {
-    try {
-      const { data } = await axios.get("/api/auth/check");
-      if (data.success) {
-        setAuthUser(data.user)
-        connectSocket(data.user)
-      } else {
-        setAuthUser(null);
-      }
-    } catch (error: unknown) {
+
+  // User sync and socket lifecycle
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    if (!isSignedIn) {
       setAuthUser(null);
-
-      if (axios.isAxiosError(error) && error.response?.data.message === "Session expired. Please log in again.") {
-        await logout();
-        toast.error("Session expired. Please log in again.");
-        return;
-      }
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      toast.error(errorMessage);
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-
-  // login function to handle user authentication and socket connection
-  const login = async (state: string, credentials: { email: string; password: string }) => {
-    try {
-      const { data } = await axios.post(`/api/auth/${state}`, credentials);
-      if (data.success) {
-        setAuthUser(data.user);
-        connectSocket(data.user);
-        toast.success(data.message);
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      toast.error(errorMessage);
-      console.error(error);
-    }
-  }
-
-
-  // logout function to handle user logout and socket disconnection
-  const logout = async () => {
-    try {
-      await axios.post('/api/auth/logout');
-      setAuthUser(null);
-      setSocket(null);
+      setSocket(prevSocket => {
+        prevSocket?.disconnect();
+        return null;
+      });
       setOnlineUsers([]);
-      socket?.disconnect();
-      toast.success("Logged out successfully");
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      toast.error(errorMessage);
-      console.error(error);
+      setLoading(false);
+      return;
     }
-  }
 
- 
-  // update profile function to handle user profile update
-  const updateProfile = async (body: { fullName?: string; bio?: string; profilePic?: string }) => {
-    try {
-      const { data } = await axios.put("/api/auth/update-profile", body);
-      if (data.success) {
-        setAuthUser(data.user);
-        toast.success("Profile updated successfully");
-      } 
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
-      toast.error(errorMessage);
-      console.error(error);
-    }
-  }
-
-  
-  // connect socket function to handle socket connection and online users updates
-  const connectSocket = (userData: AuthUser | null) => {
-    if (!userData || socket?.connected) return;
-    const newSocket = io(backendUrl, {
-      query: {
-        userId: userData._id,
+    const syncUserAndConnect = async () => {
+      try {
+        const { data } = await apiClient.get('/api/user/sync');
+        
+        if (data.success) {
+          setAuthUser(data.user);
+          await connectSocket(data.user);
+        }
+      } catch (error) {
+        console.error('Error syncing user with database:', error);
+        signOut();
+      } finally {
+        setLoading(false);
       }
-    });
-    newSocket.connect();
-    setSocket(newSocket);
+    };
 
-    newSocket.on("getOnlineUsers", (userIds: string[]) => {
-      setOnlineUsers(userIds);
-    });
-  }
+    syncUserAndConnect();
 
+    return () => {
+      socket?.disconnect();
+    };
+  }, [isLoaded, isSignedIn, connectSocket, signOut, socket]);
 
-  const value: AuthContextType = {
-    axios,
+  const value: AuthContextType = useMemo(() => ({
+    apiClient,
     authUser,
     onlineUsers,
     socket,
     loading,
-    login,
-    logout,
     updateProfile,
-    checkAuth,
-  }
+  }), [authUser, onlineUsers, socket, loading, updateProfile]);
 
   
   return (
@@ -158,3 +171,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
+export { AuthContext };
