@@ -33,6 +33,7 @@
     "@types/cookie-parser": "^1.4.9",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/express-serve-static-core": "^5.1.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.7.0",
     "ts-node": "^10.9.2",
@@ -42,5 +43,3 @@
     "typescript": "^5.9.3"
   }
 }
-
-

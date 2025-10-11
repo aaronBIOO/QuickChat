@@ -1,19 +1,18 @@
+import { SignedIn, SignedOut } from "@clerk/react-router"; 
 import { Skeleton } from "@/components/ui/skeleton";
 import { Route, Routes, Navigate } from "react-router-dom"
-import HomePage from "@/app/HomePage"
-import LoginPage from "@/app/LoginPage"
-import ProfilePage from "@/app/ProfilePage"
+import HomePage from "@/pages/HomePage"
+import ProfilePage from "@/pages/ProfilePage"
 import { Toaster } from "react-hot-toast"
 import { AuthContext } from "@/context/AuthContext"
+import LoginPage from "@/pages/LoginPage"
 import { useContext } from "react"
 
 
 function App() {
 
   const context = useContext(AuthContext);
-  const authUser = context?.authUser;
   const loading = context?.loading;
-
 
   if (loading) {
     return (
@@ -31,19 +30,55 @@ function App() {
     <div className="w-full h-screen bg-black bg-contain">
       <Toaster />
       <Routes>
-        <Route 
-          path="/" 
-          element={authUser ? <HomePage /> : <Navigate to="/login" />} 
+        <Route
+          path="/"
+          element={
+            <>
+              <SignedIn>
+                <HomePage />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/login" replace />
+              </SignedOut>
+            </>
+          }
         />
 
-        <Route 
-          path="/login" 
-          element={!authUser ? <LoginPage /> : <Navigate to="/" />} 
+        <Route
+          path="/profile"
+          element={
+            <>
+              <SignedIn>
+                <ProfilePage />
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/login" replace />
+              </SignedOut>
+            </>
+          }
         />
-        
-        <Route 
-          path="/profile" 
-          element={authUser ? <ProfilePage /> : <Navigate to="/login" />} 
+
+        <Route
+          path="/login/*"
+          element={
+            <>
+              <SignedOut>
+                <LoginPage />
+              </SignedOut>
+              <SignedIn>
+                <Navigate to="/" replace />
+              </SignedIn>
+            </>
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            <SignedOut>
+              <Navigate to="/login" replace />
+            </SignedOut>
+          }
         />
       </Routes>
     </div>
