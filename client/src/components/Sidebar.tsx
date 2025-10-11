@@ -1,6 +1,7 @@
 import assets from "@/assets/assets"
 import { useNavigate } from "react-router-dom"
 import { useContext, useState } from "react"
+import { useClerk } from "@clerk/clerk-react" 
 import { AuthContext, type AuthContextType } from "@/context/AuthContext"
 import { ChatContext } from "@/context/ChatContext"
 import type { ChatContextType, User } from "@/types/chat.types"
@@ -16,6 +17,8 @@ function Sidebar() {
     throw new Error('Context is not available');
   }
 
+  const { signOut } = useClerk();
+
   const { 
     users, 
     selectedUser, 
@@ -25,7 +28,7 @@ function Sidebar() {
   } = chatContext;
   console.log("Users from ChatContext:", users);
   
-  const { logout, onlineUsers } = authContext;
+  const { onlineUsers } = authContext;
   const [input, setInput] = useState<string>("");
 
   const navigate = useNavigate();
@@ -68,7 +71,7 @@ function Sidebar() {
               <p 
                 onClick={async () => {
                   try {
-                    await logout();
+                    await signOut();
                     navigate('/login');
                     } catch (error) {
                     console.error("Logout failed:", error);
